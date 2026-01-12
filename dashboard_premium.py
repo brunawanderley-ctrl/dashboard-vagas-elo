@@ -787,7 +787,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # Mapeamento por código da unidade (mais preciso)
 METAS_POR_CODIGO = {
     "01-BV": 1280,   # Boa Viagem
-    "02-CD": 1270,   # Candeias (Jaboatão)
+    "02-CD": 1300,   # Candeias (Jaboatão)
     "03-JG": 750,    # Janga (Paulista)
     "04-CDR": 800,   # Cordeiro
 }
@@ -799,7 +799,7 @@ METAS_NOVATOS = {
     "04-CDR": 232,   # Cordeiro (+30)
 }
 META_NOVATOS = 1000
-META_TOTAL = 1280 + 1270 + 750 + 800  # 4100
+META_TOTAL = 1280 + 1300 + 750 + 800  # 4130
 
 # ===== INSIGHTS EXECUTIVOS - CEO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>💡 Insights Executivos</h3>", unsafe_allow_html=True)
