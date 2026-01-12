@@ -1323,15 +1323,15 @@ if dados_2025_path.exists() and dados_2026_path.exists():
     # Função para extrair série do nome da turma
     def extrair_serie(turma_nome):
         turma_lower = turma_nome.lower()
-        # Educação Infantil
-        if "infantil ii" in turma_lower or "infantil 2" in turma_lower:
-            return "Infantil II"
-        elif "infantil iii" in turma_lower or "infantil 3" in turma_lower:
-            return "Infantil III"
+        # Educação Infantil (ordem V->IV->III->II para evitar substring match)
+        if "infantil v" in turma_lower or "infantil 5" in turma_lower:
+            return "Infantil V"
         elif "infantil iv" in turma_lower or "infantil 4" in turma_lower:
             return "Infantil IV"
-        elif "infantil v" in turma_lower or "infantil 5" in turma_lower:
-            return "Infantil V"
+        elif "infantil iii" in turma_lower or "infantil 3" in turma_lower:
+            return "Infantil III"
+        elif "infantil ii" in turma_lower or "infantil 2" in turma_lower:
+            return "Infantil II"
         # Fundamental I
         elif "1º ano" in turma_lower or "1° ano" in turma_lower or "primeiro ano" in turma_lower:
             return "1º ano"
