@@ -944,50 +944,95 @@ for i, (_, row) in enumerate(df_perf_unidade.iterrows()):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===== GRÁFICO DE ATINGIMENTO DE METAS =====
-st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Progresso das Metas</h3>", unsafe_allow_html=True)
+# ===== TERMÔMETRO DE METAS POR UNIDADE =====
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🎯 Termômetro de Metas por Unidade</h3>", unsafe_allow_html=True)
 
-fig_metas = go.Figure()
+# Função para cor do termômetro de metas (escala 6 cores)
+def cor_meta(atingimento):
+    if atingimento >= 100: return '#065f46'   # Meta atingida (verde escuro)
+    elif atingimento >= 90: return '#22c55e'  # Quase lá (verde)
+    elif atingimento >= 80: return '#a3e635'  # Bom progresso (verde-amarelo)
+    elif atingimento >= 60: return '#facc15'  # Atenção (amarelo)
+    elif atingimento >= 40: return '#f97316'  # Risco (laranja)
+    else: return '#dc2626'                    # Crítico (vermelho)
 
-# Barra de fundo (meta = 100%)
-fig_metas.add_trace(go.Bar(
-    name='Meta',
-    x=df_perf_unidade['Nome_curto'],
-    y=[100] * len(df_perf_unidade),
-    marker_color='rgba(102, 126, 234, 0.15)',
-    hoverinfo='skip'
-))
+def status_meta(atingimento):
+    if atingimento >= 100: return 'Atingida'
+    elif atingimento >= 90: return 'Quase lá'
+    elif atingimento >= 80: return 'Bom'
+    elif atingimento >= 60: return 'Atenção'
+    elif atingimento >= 40: return 'Risco'
+    else: return 'Crítico'
 
-# Barra de atingimento
-cores_ating = ['#10b981' if a >= 100 else '#f59e0b' if a >= 80 else '#ef4444'
-               for a in df_perf_unidade['Atingimento']]
+# Termômetros de Matrículas
+st.markdown("<h4 style='color: #e2e8f0; font-weight: 500; margin-top: 10px;'>Meta de Matrículas</h4>", unsafe_allow_html=True)
+cols_meta_mat = st.columns(len(df_perf_unidade))
 
-fig_metas.add_trace(go.Bar(
-    name='Atingimento',
-    x=df_perf_unidade['Nome_curto'],
-    y=df_perf_unidade['Atingimento'],
-    marker_color=cores_ating,
-    text=df_perf_unidade.apply(lambda r: f"{r['Atingimento']:.1f}%<br>{int(r['Matriculados'])}/{int(r['Meta'])}", axis=1),
-    textposition='outside',
-    textfont=dict(color='#ffffff', size=12)
-))
+for idx, (_, row) in enumerate(df_perf_unidade.iterrows()):
+    atingimento = row['Atingimento']
+    cor = cor_meta(atingimento)
+    status = status_meta(atingimento)
+    gap = int(row['Gap'])
+    sinal_gap = '+' if gap >= 0 else ''
 
-# Linha de meta (100%)
-fig_metas.add_hline(y=100, line_dash="dash", line_color="#667eea",
-                    annotation_text="Meta 100%", annotation_position="right")
+    with cols_meta_mat[idx]:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{row['Nome_curto']}</div>
+            <div style='position: relative; width: 50px; height: 160px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
+                <div style='position: absolute; bottom: 0; width: 100%; height: {min(atingimento, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px; transition: height 0.5s;'></div>
+                <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
+                    <span style='font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{atingimento:.0f}%</span>
+                </div>
+            </div>
+            <div style='margin-top: 8px;'>
+                <span style='background: {cor}; color: {"white" if atingimento < 80 or atingimento >= 90 else "#1a1a2e"}; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;'>{status}</span>
+            </div>
+            <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(row['Matriculados'])} / {int(row['Meta'])}</div>
+            <div style='font-size: 10px; color: {cor}; font-weight: 600;'>Gap: {sinal_gap}{gap}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-fig_metas.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-    barmode='overlay',
-    showlegend=False,
-    height=350,
-    yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 130], title='% Atingimento'),
-    xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
-)
+# Termômetros de Novatos
+st.markdown("<h4 style='color: #e2e8f0; font-weight: 500; margin-top: 20px;'>Meta de Novatos</h4>", unsafe_allow_html=True)
+cols_meta_nov = st.columns(len(df_perf_unidade))
 
-st.plotly_chart(fig_metas, use_container_width=True)
+for idx, (_, row) in enumerate(df_perf_unidade.iterrows()):
+    atingimento_nov = (row['Novatos'] / row['Meta_Novatos'] * 100) if row['Meta_Novatos'] > 0 else 0
+    cor = cor_meta(atingimento_nov)
+    status = status_meta(atingimento_nov)
+    gap_nov = int(row['Novatos'] - row['Meta_Novatos'])
+    sinal_gap = '+' if gap_nov >= 0 else ''
+
+    with cols_meta_nov[idx]:
+        st.markdown(f"""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{row['Nome_curto']}</div>
+            <div style='position: relative; width: 50px; height: 160px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
+                <div style='position: absolute; bottom: 0; width: 100%; height: {min(atingimento_nov, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px; transition: height 0.5s;'></div>
+                <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
+                    <span style='font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{atingimento_nov:.0f}%</span>
+                </div>
+            </div>
+            <div style='margin-top: 8px;'>
+                <span style='background: {cor}; color: {"white" if atingimento_nov < 80 or atingimento_nov >= 90 else "#1a1a2e"}; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;'>{status}</span>
+            </div>
+            <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(row['Novatos'])} / {int(row['Meta_Novatos'])}</div>
+            <div style='font-size: 10px; color: {cor}; font-weight: 600;'>Gap: {sinal_gap}{gap_nov}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# Legenda das metas
+st.markdown("""
+<div style='display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px;'>
+    <span style='background: #065f46; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>≥100% Atingida</span>
+    <span style='background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>90-99% Quase lá</span>
+    <span style='background: #a3e635; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>80-89% Bom</span>
+    <span style='background: #facc15; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>60-79% Atenção</span>
+    <span style='background: #f97316; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>40-59% Risco</span>
+    <span style='background: #dc2626; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>&lt;40% Crítico</span>
+</div>
+""", unsafe_allow_html=True)
 
 # ===== ALERTAS DE AÇÃO IMEDIATA POR UNIDADE =====
 st.markdown("""
