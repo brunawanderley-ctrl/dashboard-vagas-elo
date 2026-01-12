@@ -1,0 +1,1462 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import json
+import sqlite3
+import subprocess
+import os
+from pathlib import Path
+from datetime import datetime
+
+# Configuração da página
+st.set_page_config(
+    page_title="Vagas Colégio Elo",
+    page_icon="🎓",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+BASE_DIR = Path(__file__).parent
+
+# Toggle de tema (precisa vir antes do CSS)
+if 'tema_escuro' not in st.session_state:
+    st.session_state.tema_escuro = True
+
+# CSS Dinâmico baseado no tema
+if st.session_state.get('tema_toggle', True):
+    # CSS Premium Dark Mode
+    st.markdown("""
+<style>
+    /* Dark theme base */
+    .stApp {
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+    }
+
+    /* Main container */
+    .main .block-container {
+        padding: 2rem 3rem;
+        max-width: 1400px;
+    }
+
+    /* Headers */
+    h1, h2, h3 {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+
+    h2, h3 {
+        color: #e0e0ff !important;
+    }
+
+    h1 {
+        font-size: 2.5rem !important;
+        background: linear-gradient(90deg, #8fa4f3 0%, #a78bda 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Markdown headers */
+    .stMarkdown h3 {
+        color: #c4d0ff !important;
+        font-size: 1.4rem !important;
+    }
+
+    /* Metric cards */
+    [data-testid="stMetric"] {
+        background: linear-gradient(145deg, #1e1e30 0%, #252540 100%);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-testid="stMetric"] label {
+        color: #a0a0b0 !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    [data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #ffffff !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stMetric"] [data-testid="stMetricDelta"] {
+        color: #4ade80 !important;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(30, 30, 48, 0.8);
+        border-radius: 12px;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        color: #a0a0b0;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: rgba(30, 30, 48, 0.8);
+        border-radius: 12px;
+        color: #ffffff;
+    }
+
+    /* Dataframe */
+    .stDataFrame {
+        background: rgba(30, 30, 48, 0.8);
+        border-radius: 12px;
+    }
+
+    /* Divider */
+    hr {
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    /* Caption */
+    .stCaption {
+        color: #606080 !important;
+    }
+
+    /* Button */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Info box */
+    .stAlert {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 12px;
+    }
+
+    /* Plotly charts dark theme */
+    .js-plotly-plot {
+        border-radius: 16px;
+    }
+
+    /* Premium card class */
+    .premium-card {
+        background: linear-gradient(145deg, #1e1e30 0%, #252540 100%);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Glowing effect for important metrics */
+    .glow {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+</style>
+""", unsafe_allow_html=True)
+else:
+    # CSS Light Mode
+    st.markdown("""
+<style>
+    /* Light theme base */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 50%, #dce2ed 100%);
+    }
+
+    /* Main container */
+    .main .block-container {
+        padding: 2rem 3rem;
+        max-width: 1400px;
+    }
+
+    /* Headers */
+    h1, h2, h3 {
+        color: #1e3a5f !important;
+        font-weight: 600 !important;
+    }
+
+    h1 {
+        font-size: 2.5rem !important;
+        background: linear-gradient(90deg, #4a6fa5 0%, #6b5b95 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Metric cards */
+    [data-testid="stMetric"] {
+        background: linear-gradient(145deg, #ffffff 0%, #f0f2f6 100%);
+        border: 1px solid rgba(74, 111, 165, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-testid="stMetric"] label {
+        color: #5a6a7a !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    [data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #1e3a5f !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        color: #5a6a7a;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #4a6fa5 0%, #6b5b95 100%);
+        color: white !important;
+    }
+
+    /* Button */
+    .stButton > button {
+        background: linear-gradient(135deg, #4a6fa5 0%, #6b5b95 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 111, 165, 0.3);
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 111, 165, 0.4);
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
+    }
+
+    /* Divider */
+    hr {
+        border-color: rgba(74, 111, 165, 0.2);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Layout do tema para gráficos Plotly (dinâmico)
+PLOTLY_LAYOUT = dict(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+    title=dict(font=dict(color='#ffffff', size=18)),
+    xaxis=dict(
+        gridcolor='rgba(102, 126, 234, 0.1)',
+        linecolor='rgba(102, 126, 234, 0.2)',
+        tickfont=dict(color='#a0a0b0')
+    ),
+    yaxis=dict(
+        gridcolor='rgba(102, 126, 234, 0.1)',
+        linecolor='rgba(102, 126, 234, 0.2)',
+        tickfont=dict(color='#a0a0b0')
+    ),
+    legend=dict(
+        bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0')
+    ),
+    margin=dict(t=60, b=40, l=40, r=40)
+)
+
+# Cores premium
+COLORS = {
+    'primary': '#667eea',
+    'secondary': '#764ba2',
+    'success': '#4ade80',
+    'warning': '#fbbf24',
+    'danger': '#f87171',
+    'info': '#60a5fa',
+    'gradient': ['#667eea', '#764ba2', '#a855f7', '#ec4899']
+}
+
+BASE_PATH = Path(__file__).parent / "output"
+
+# Carrega dados atuais
+@st.cache_data(ttl=60)
+def carregar_dados():
+    with open(BASE_PATH / "resumo_ultimo.json") as f:
+        resumo = json.load(f)
+    with open(BASE_PATH / "vagas_ultimo.json") as f:
+        vagas = json.load(f)
+    return resumo, vagas
+
+# Carrega histórico do banco
+@st.cache_data(ttl=60)
+def carregar_historico():
+    db_path = BASE_PATH / "vagas.db"
+    if not db_path.exists():
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), 0
+
+    conn = sqlite3.connect(db_path)
+
+    query_unidades = """
+    SELECT e.data_extracao, v.unidade_codigo, v.unidade_nome,
+           SUM(v.vagas) as vagas, SUM(v.matriculados) as matriculados,
+           SUM(v.novatos) as novatos, SUM(v.veteranos) as veteranos,
+           SUM(v.disponiveis) as disponiveis
+    FROM vagas v JOIN 'extrações' e ON v.extracao_id = e.id
+    GROUP BY e.id, v.unidade_codigo ORDER BY e.data_extracao
+    """
+    df_unidades = pd.read_sql_query(query_unidades, conn)
+
+    query_total = """
+    SELECT e.data_extracao, SUM(v.vagas) as vagas, SUM(v.matriculados) as matriculados,
+           SUM(v.novatos) as novatos, SUM(v.veteranos) as veteranos, SUM(v.disponiveis) as disponiveis
+    FROM vagas v JOIN 'extrações' e ON v.extracao_id = e.id
+    GROUP BY e.id ORDER BY e.data_extracao
+    """
+    df_total = pd.read_sql_query(query_total, conn)
+
+    query_segmento = """
+    SELECT e.data_extracao, v.segmento, SUM(v.vagas) as vagas,
+           SUM(v.matriculados) as matriculados, SUM(v.disponiveis) as disponiveis
+    FROM vagas v JOIN 'extrações' e ON v.extracao_id = e.id
+    GROUP BY e.id, v.segmento ORDER BY e.data_extracao
+    """
+    df_segmento = pd.read_sql_query(query_segmento, conn)
+
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM 'extrações'")
+    num_extracoes = cursor.fetchone()[0]
+    conn.close()
+
+    for df in [df_unidades, df_total, df_segmento]:
+        if not df.empty:
+            df['data_extracao'] = pd.to_datetime(df['data_extracao'])
+            df['data_formatada'] = df['data_extracao'].dt.strftime('%d/%m %H:%M')
+
+    return df_unidades, df_total, df_segmento, num_extracoes
+
+def criar_df_turmas(vagas_data):
+    """Cria DataFrame com todas as turmas"""
+    rows = []
+    for unidade in vagas_data["unidades"]:
+        for turma in unidade.get("turmas", []):
+            rows.append({
+                "Unidade": unidade["nome"],
+                "Segmento": turma["segmento"],
+                "Turma": turma["turma"],
+                "Vagas": turma["vagas"],
+                "Matriculados": turma["matriculados"],
+                "Novatos": turma["novatos"],
+                "Veteranos": turma["veteranos"],
+                "Pre-matriculados": turma["pre_matriculados"],
+                "Disponiveis": turma["disponiveis"],
+            })
+    return pd.DataFrame(rows)
+
+def criar_df_resumo(resumo_data):
+    """Cria DataFrame com resumo por unidade/segmento"""
+    rows = []
+    for unidade in resumo_data["unidades"]:
+        for segmento, dados in unidade["segmentos"].items():
+            rows.append({
+                "Unidade": unidade["nome"],
+                "Segmento": segmento,
+                "Vagas": dados["vagas"],
+                "Novatos": dados["novatos"],
+                "Veteranos": dados["veteranos"],
+                "Matriculados": dados["matriculados"],
+                "Disponiveis": dados["disponiveis"],
+            })
+    return pd.DataFrame(rows)
+
+try:
+    resumo, vagas = carregar_dados()
+    df_hist_unidades, df_hist_total, df_hist_segmento, num_extracoes = carregar_historico()
+    df_turmas_all = criar_df_turmas(vagas)
+    df_resumo_all = criar_df_resumo(resumo)
+except FileNotFoundError:
+    st.error("Arquivos de dados não encontrados. Execute a extração primeiro.")
+    st.stop()
+
+# ===== SIDEBAR - TEMA =====
+tema_escuro = st.sidebar.toggle("Tema Escuro", value=True, key="tema_toggle")
+
+st.sidebar.divider()
+
+# ===== SIDEBAR - FILTROS =====
+st.sidebar.header("Filtros")
+
+# Filtro de Unidade
+unidades_lista = ["Todas"] + list(df_resumo_all["Unidade"].unique())
+unidade_selecionada = st.sidebar.selectbox("Unidade", unidades_lista)
+
+# Filtro de Segmento
+segmentos_lista = ["Todos"] + list(df_resumo_all["Segmento"].unique())
+segmento_selecionado = st.sidebar.selectbox("Segmento", segmentos_lista)
+
+# Filtro de Turno
+def extrair_turno(turma_nome):
+    turma_lower = turma_nome.lower()
+    if "manhã" in turma_lower or "manha" in turma_lower:
+        return "Manhã"
+    elif "tarde" in turma_lower:
+        return "Tarde"
+    elif "integral" in turma_lower:
+        return "Integral"
+    else:
+        return "Outro"
+
+df_turmas_all["Turno"] = df_turmas_all["Turma"].apply(extrair_turno)
+turnos_lista = ["Todos"] + list(df_turmas_all["Turno"].unique())
+turno_selecionado = st.sidebar.selectbox("Turno", turnos_lista)
+
+# Aplica filtros
+df_resumo_filtrado = df_resumo_all.copy()
+df_turmas_filtrado = df_turmas_all.copy()
+
+if unidade_selecionada != "Todas":
+    df_resumo_filtrado = df_resumo_filtrado[df_resumo_filtrado["Unidade"] == unidade_selecionada]
+    df_turmas_filtrado = df_turmas_filtrado[df_turmas_filtrado["Unidade"] == unidade_selecionada]
+
+if segmento_selecionado != "Todos":
+    df_resumo_filtrado = df_resumo_filtrado[df_resumo_filtrado["Segmento"] == segmento_selecionado]
+    df_turmas_filtrado = df_turmas_filtrado[df_turmas_filtrado["Segmento"] == segmento_selecionado]
+
+if turno_selecionado != "Todos":
+    df_turmas_filtrado = df_turmas_filtrado[df_turmas_filtrado["Turno"] == turno_selecionado]
+
+# Seletor de Turma específica
+st.sidebar.divider()
+st.sidebar.header("Buscar Turma")
+turmas_opcoes = ["Todas"] + sorted(df_turmas_filtrado["Turma"].unique().tolist())
+turma_selecionada = st.sidebar.selectbox("Selecione a turma", turmas_opcoes)
+
+st.sidebar.divider()
+
+# ===== SIDEBAR - EXPORTAR =====
+st.sidebar.header("Exportar")
+
+csv = df_turmas_all.to_csv(index=False).encode('utf-8')
+st.sidebar.download_button(
+    label="Baixar CSV completo",
+    data=csv,
+    file_name=f"vagas_colegio_elo_{resumo['data_extracao'][:10]}.csv",
+    mime="text/csv",
+)
+
+st.sidebar.divider()
+
+# Info
+st.sidebar.info(
+    f"**Período:** {resumo['periodo']}\n\n"
+    f"**Unidades:** {len(resumo['unidades'])}\n\n"
+    f"**Total de turmas:** {len(df_turmas_all)}"
+)
+
+# Header Premium
+col_title, col_btn = st.columns([5, 1])
+
+with col_title:
+    st.markdown("""
+        <h1 style='margin-bottom: 0;'>Dashboard de Vagas</h1>
+        <p style='color: #667eea; font-size: 1.2rem; margin-top: 0.5rem;'>Colégio Elo - Visão Executiva</p>
+    """, unsafe_allow_html=True)
+
+with col_btn:
+    st.write("")
+    if st.button("🔄 Atualizar", use_container_width=True):
+        status_container = st.empty()
+        status_container.info("⏳ Iniciando extração do SIGA...")
+
+        try:
+            # Tenta encontrar o Python do venv
+            venv_python = BASE_DIR / "venv" / "bin" / "python"
+            if not venv_python.exists():
+                venv_python = "python3"  # Fallback para python do sistema
+
+            extrator_script = BASE_DIR / "extrair_vagas.py"
+
+            if not extrator_script.exists():
+                status_container.error(f"Script não encontrado: {extrator_script}")
+            else:
+                status_container.info("⏳ Extraindo dados do SIGA... (pode levar alguns minutos)")
+
+                result = subprocess.run(
+                    [str(venv_python), str(extrator_script)],
+                    capture_output=True,
+                    text=True,
+                    timeout=600,
+                    cwd=str(BASE_DIR),
+                    env={**os.environ, "PYTHONUNBUFFERED": "1"}
+                )
+
+                if result.returncode == 0:
+                    status_container.success("✅ Dados atualizados com sucesso!")
+                    st.cache_data.clear()
+                    import time
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    status_container.error(f"❌ Erro na extração")
+                    with st.expander("Ver detalhes do erro"):
+                        st.code(result.stderr or result.stdout or "Sem detalhes")
+
+        except subprocess.TimeoutExpired:
+            status_container.error("⏰ Timeout: extração demorou mais de 10 minutos")
+        except Exception as e:
+            status_container.error(f"❌ Erro: {str(e)}")
+            with st.expander("Ver detalhes"):
+                import traceback
+                st.code(traceback.format_exc())
+
+# Info bar
+st.markdown(f"""
+    <div style='display: flex; gap: 2rem; color: #606080; font-size: 0.85rem; margin-bottom: 2rem;'>
+        <span>📅 Última atualização: <strong style='color: #a0a0b0;'>{resumo['data_extracao'][:16].replace('T', ' ')}</strong></span>
+        <span>📊 Período: <strong style='color: #a0a0b0;'>{resumo['periodo']}</strong></span>
+        <span>🔢 Extrações: <strong style='color: #a0a0b0;'>{num_extracoes}</strong></span>
+    </div>
+""", unsafe_allow_html=True)
+
+# Métricas principais (com filtro aplicado)
+if unidade_selecionada != "Todas" or segmento_selecionado != "Todos":
+    total = {
+        "vagas": df_resumo_filtrado["Vagas"].sum(),
+        "novatos": df_resumo_filtrado["Novatos"].sum(),
+        "veteranos": df_resumo_filtrado["Veteranos"].sum(),
+        "matriculados": df_resumo_filtrado["Matriculados"].sum(),
+        "disponiveis": df_resumo_filtrado["Disponiveis"].sum(),
+    }
+else:
+    total = resumo['total_geral']
+
+ocupacao = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vagas'] > 0 else 0
+
+col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+with col1:
+    st.metric("OCUPAÇÃO", f"{ocupacao}%")
+with col2:
+    st.metric("MATRICULADOS", f"{total['matriculados']:,}".replace(",", "."))
+with col3:
+    st.metric("VETERANOS", f"{total['veteranos']:,}".replace(",", "."))
+with col4:
+    st.metric("NOVATOS", f"{total['novatos']:,}".replace(",", "."))
+with col5:
+    st.metric("VAGAS TOTAIS", f"{total['vagas']:,}".replace(",", "."))
+with col6:
+    st.metric("DISPONÍVEIS", f"{total['disponiveis']:,}".replace(",", "."))
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Gráficos principais
+col_left, col_right = st.columns(2)
+
+with col_left:
+    st.markdown("### Ocupação por Unidade")
+
+    df_unidades = pd.DataFrame([
+        {
+            'Unidade': u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome'],
+            'Ocupação': round(u['total']['matriculados'] / u['total']['vagas'] * 100, 1),
+            'Matriculados': u['total']['matriculados'],
+            'Vagas': u['total']['vagas']
+        }
+        for u in resumo['unidades']
+    ])
+
+    fig1 = go.Figure()
+
+    # Barra de fundo (vagas totais)
+    fig1.add_trace(go.Bar(
+        name='Capacidade',
+        x=df_unidades['Unidade'],
+        y=[100] * len(df_unidades),
+        marker_color='rgba(102, 126, 234, 0.15)',
+        hoverinfo='skip'
+    ))
+
+    # Barra de ocupação
+    colors = [COLORS['danger'] if o >= 80 else COLORS['success'] if o < 60 else COLORS['warning']
+              for o in df_unidades['Ocupação']]
+
+    fig1.add_trace(go.Bar(
+        name='Ocupação',
+        x=df_unidades['Unidade'],
+        y=df_unidades['Ocupação'],
+        marker_color=colors,
+        text=df_unidades['Ocupação'].apply(lambda x: f'{x}%'),
+        textposition='outside',
+        textfont=dict(color='#ffffff', size=14, family='Inter')
+    ))
+
+    fig1.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        barmode='overlay',
+        showlegend=False,
+        height=350,
+        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 110], title=''),
+        xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+with col_right:
+    st.markdown("### Distribuição por Segmento")
+
+    segmentos_total = {}
+    for unidade in resumo['unidades']:
+        for seg, vals in unidade['segmentos'].items():
+            if seg not in segmentos_total:
+                segmentos_total[seg] = {'matriculados': 0, 'vagas': 0}
+            segmentos_total[seg]['matriculados'] += vals['matriculados']
+            segmentos_total[seg]['vagas'] += vals['vagas']
+
+    df_seg = pd.DataFrame([
+        {'Segmento': seg, 'Matriculados': v['matriculados'], 'Vagas': v['vagas']}
+        for seg, v in segmentos_total.items()
+    ])
+
+    ordem = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
+    df_seg['ordem'] = df_seg['Segmento'].map({s: i for i, s in enumerate(ordem)})
+    df_seg = df_seg.sort_values('ordem')
+
+    fig2 = go.Figure()
+
+    fig2.add_trace(go.Bar(
+        name='Vagas',
+        x=df_seg['Segmento'],
+        y=df_seg['Vagas'],
+        marker_color='rgba(102, 126, 234, 0.3)',
+        text=df_seg['Vagas'],
+        textposition='outside',
+        textfont=dict(color='#667eea')
+    ))
+
+    fig2.add_trace(go.Bar(
+        name='Matriculados',
+        x=df_seg['Segmento'],
+        y=df_seg['Matriculados'],
+        marker=dict(
+            color=df_seg['Matriculados'],
+            colorscale=[[0, '#667eea'], [1, '#764ba2']]
+        ),
+        text=df_seg['Matriculados'],
+        textposition='outside',
+        textfont=dict(color='#ffffff')
+    ))
+
+    fig2.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        barmode='group',
+        height=350,
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='right',
+            x=1,
+            bgcolor='rgba(0,0,0,0)',
+            font=dict(color='#a0a0b0')
+        )
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== METAS POR UNIDADE =====
+# Mapeamento por código da unidade (mais preciso)
+METAS_POR_CODIGO = {
+    "01-BV": 1280,   # Boa Viagem
+    "02-CD": 1320,   # Candeias (Jaboatão)
+    "03-JG": 750,    # Janga (Paulista)
+    "04-CDR": 850,   # Cordeiro
+}
+META_NOVATOS = 1000
+META_TOTAL = 1280 + 1320 + 750 + 850  # 4200
+
+# ===== INSIGHTS EXECUTIVOS - CEO =====
+st.markdown("### 💡 Insights Executivos")
+
+# Calcula métricas por unidade com metas
+df_perf_unidade = df_resumo_all.groupby('Unidade').agg({
+    'Vagas': 'sum', 'Matriculados': 'sum', 'Novatos': 'sum', 'Veteranos': 'sum'
+}).reset_index()
+
+# Adiciona metas e calcula gaps
+def get_meta(unidade_nome):
+    # Usa código da unidade para precisão
+    if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
+        return 1280
+    elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
+        return 1320
+    elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
+        return 750
+    elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
+        return 850
+    return 0
+
+df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(get_meta)
+df_perf_unidade['Gap'] = df_perf_unidade['Matriculados'] - df_perf_unidade['Meta']
+df_perf_unidade['Atingimento'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Meta'] * 100).round(1)
+df_perf_unidade['Ocupacao'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Vagas'] * 100).round(1)
+
+# Extrai nome curto
+df_perf_unidade['Nome_curto'] = df_perf_unidade['Unidade'].apply(
+    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+)
+
+# Calcula totais
+total_meta = META_TOTAL
+gap_total = total['matriculados'] - total_meta
+atingimento_total = (total['matriculados'] / total_meta * 100) if total_meta > 0 else 0
+
+gap_novatos = total['novatos'] - META_NOVATOS
+atingimento_novatos = (total['novatos'] / META_NOVATOS * 100) if META_NOVATOS > 0 else 0
+
+# Linha 1 - Metas gerais
+col_meta1, col_meta2, col_meta3 = st.columns(3)
+
+with col_meta1:
+    cor_meta = '#10b981' if gap_total >= 0 else '#f59e0b' if atingimento_total >= 80 else '#ef4444'
+    sinal = '+' if gap_total >= 0 else ''
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_meta};'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Matrículas ({total_meta:,})</p>
+        <p style='color: {cor_meta}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{atingimento_total:.1f}%</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal}{gap_total:,} alunos ({total['matriculados']:,}/{total_meta:,})</p>
+    </div>
+    """.replace(",", "."), unsafe_allow_html=True)
+
+with col_meta2:
+    cor_novatos = '#10b981' if gap_novatos >= 0 else '#f59e0b' if atingimento_novatos >= 80 else '#ef4444'
+    sinal_nov = '+' if gap_novatos >= 0 else ''
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_novatos};'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Novatos ({META_NOVATOS:,})</p>
+        <p style='color: {cor_novatos}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{atingimento_novatos:.1f}%</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal_nov}{gap_novatos:,} novatos ({total['novatos']:,}/{META_NOVATOS:,})</p>
+    </div>
+    """.replace(",", "."), unsafe_allow_html=True)
+
+with col_meta3:
+    taxa_retencao_geral = (total['veteranos'] / total['matriculados'] * 100) if total['matriculados'] > 0 else 0
+    cor_retencao = '#10b981' if taxa_retencao_geral >= 70 else '#f59e0b' if taxa_retencao_geral >= 50 else '#ef4444'
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_retencao};'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Retenção de Veteranos</p>
+        <p style='color: {cor_retencao}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{taxa_retencao_geral:.1f}%</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{total['veteranos']:,} veteranos renovaram</p>
+    </div>
+    """.replace(",", "."), unsafe_allow_html=True)
+
+# Linha 2 - Metas por unidade
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("#### Atingimento de Metas por Unidade")
+
+cols_unidades = st.columns(4)
+
+for i, (_, row) in enumerate(df_perf_unidade.iterrows()):
+    with cols_unidades[i % 4]:
+        cor = '#10b981' if row['Gap'] >= 0 else '#f59e0b' if row['Atingimento'] >= 80 else '#ef4444'
+        sinal = '+' if row['Gap'] >= 0 else ''
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1rem; border-radius: 12px; border-left: 4px solid {cor}; margin-bottom: 0.5rem;'>
+            <p style='color: #ffffff; font-size: 1rem; font-weight: 600; margin: 0;'>{row['Nome_curto']}</p>
+            <p style='color: {cor}; font-size: 1.5rem; font-weight: 700; margin: 0.2rem 0;'>{row['Atingimento']:.1f}%</p>
+            <p style='color: #94a3b8; font-size: 0.7rem; margin: 0;'>{int(row['Matriculados'])} / {int(row['Meta'])} ({sinal}{int(row['Gap'])})</p>
+            <p style='color: #64748b; font-size: 0.65rem; margin: 0.2rem 0 0 0;'>Novatos: {int(row['Novatos'])} | Vet: {int(row['Veteranos'])}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# Linha 3 - Resumo executivo
+st.markdown("<br>", unsafe_allow_html=True)
+col_res1, col_res2, col_res3 = st.columns(3)
+
+melhor_unidade = df_perf_unidade.loc[df_perf_unidade['Atingimento'].idxmax()]
+pior_unidade = df_perf_unidade.loc[df_perf_unidade['Atingimento'].idxmin()]
+
+with col_res1:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #10b981;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Melhor Atingimento</p>
+        <p style='color: #10b981; font-size: 1.4rem; font-weight: 700; margin: 0.3rem 0;'>{melhor_unidade['Nome_curto']}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{melhor_unidade['Atingimento']:.1f}% da meta</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_res2:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #ef4444;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Requer Atenção</p>
+        <p style='color: #ef4444; font-size: 1.4rem; font-weight: 700; margin: 0.3rem 0;'>{pior_unidade['Nome_curto']}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{pior_unidade['Atingimento']:.1f}% da meta (faltam {abs(int(pior_unidade['Gap']))})</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_res3:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #3b82f6;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Potencial de Crescimento</p>
+        <p style='color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{total['disponiveis']:,}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>vagas disponíveis</p>
+    </div>
+    """.replace(",", "."), unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== GRÁFICO DE ATINGIMENTO DE METAS =====
+st.markdown("### 📊 Atingimento de Metas por Unidade")
+
+fig_metas = go.Figure()
+
+# Barra de fundo (meta = 100%)
+fig_metas.add_trace(go.Bar(
+    name='Meta',
+    x=df_perf_unidade['Nome_curto'],
+    y=[100] * len(df_perf_unidade),
+    marker_color='rgba(102, 126, 234, 0.15)',
+    hoverinfo='skip'
+))
+
+# Barra de atingimento
+cores_ating = ['#10b981' if a >= 100 else '#f59e0b' if a >= 80 else '#ef4444'
+               for a in df_perf_unidade['Atingimento']]
+
+fig_metas.add_trace(go.Bar(
+    name='Atingimento',
+    x=df_perf_unidade['Nome_curto'],
+    y=df_perf_unidade['Atingimento'],
+    marker_color=cores_ating,
+    text=df_perf_unidade.apply(lambda r: f"{r['Atingimento']:.1f}%<br>{int(r['Matriculados'])}/{int(r['Meta'])}", axis=1),
+    textposition='outside',
+    textfont=dict(color='#ffffff', size=12)
+))
+
+# Linha de meta (100%)
+fig_metas.add_hline(y=100, line_dash="dash", line_color="#667eea",
+                    annotation_text="Meta 100%", annotation_position="right")
+
+fig_metas.update_layout(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+    barmode='overlay',
+    showlegend=False,
+    height=350,
+    yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 130], title='% Atingimento'),
+    xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
+)
+
+st.plotly_chart(fig_metas, use_container_width=True)
+
+# ===== ALERTAS DE AÇÃO IMEDIATA =====
+st.markdown("### ⚠️ Alertas de Ação Imediata")
+
+# Turmas com maior gap para a meta
+turmas_criticas = df_turmas_all.copy()
+turmas_criticas['Ocupacao'] = (turmas_criticas['Matriculados'] / turmas_criticas['Vagas'] * 100).round(1)
+
+# Turmas quase lotadas (>95%) - precisam de nova turma
+turmas_lotadas = turmas_criticas[turmas_criticas['Ocupacao'] >= 95].sort_values('Ocupacao', ascending=False)
+
+# Turmas com muitas vagas (<50%) - precisam de captação
+turmas_vazias = turmas_criticas[turmas_criticas['Ocupacao'] < 50].sort_values('Ocupacao')
+
+col_alert1, col_alert2 = st.columns(2)
+
+with col_alert1:
+    st.markdown("""
+    <p style='color: #ef4444; font-weight: 600; margin-bottom: 0.5rem;'>🔴 Turmas Lotadas (≥95%) - Considerar Nova Turma</p>
+    """, unsafe_allow_html=True)
+
+    if len(turmas_lotadas) > 0:
+        for _, t in turmas_lotadas.head(5).iterrows():
+            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
+            st.markdown(f"""
+            <div style='background: rgba(239, 68, 68, 0.1); padding: 0.5rem 0.8rem; border-radius: 8px; margin-bottom: 0.3rem; border-left: 3px solid #ef4444;'>
+                <span style='color: #ffffff; font-weight: 500;'>{t['Turma']}</span>
+                <span style='color: #94a3b8; font-size: 0.8rem;'> • {unidade_curta}</span>
+                <span style='color: #ef4444; float: right; font-weight: 600;'>{t['Ocupacao']:.0f}%</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Nenhuma turma com ocupação ≥95%")
+
+with col_alert2:
+    st.markdown("""
+    <p style='color: #f59e0b; font-weight: 600; margin-bottom: 0.5rem;'>🟡 Turmas com Baixa Ocupação (<50%) - Foco em Captação</p>
+    """, unsafe_allow_html=True)
+
+    if len(turmas_vazias) > 0:
+        for _, t in turmas_vazias.head(5).iterrows():
+            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
+            vagas_disp = t['Vagas'] - t['Matriculados']
+            st.markdown(f"""
+            <div style='background: rgba(251, 191, 36, 0.1); padding: 0.5rem 0.8rem; border-radius: 8px; margin-bottom: 0.3rem; border-left: 3px solid #f59e0b;'>
+                <span style='color: #ffffff; font-weight: 500;'>{t['Turma']}</span>
+                <span style='color: #94a3b8; font-size: 0.8rem;'> • {unidade_curta}</span>
+                <span style='color: #f59e0b; float: right; font-weight: 600;'>{int(vagas_disp)} vagas</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.success("Nenhuma turma com ocupação <50%")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== GRÁFICO DE OCUPAÇÃO POR UNIDADE/SEGMENTO =====
+st.markdown("### Taxa de Ocupação por Unidade e Segmento")
+
+df_ocupacao = df_resumo_filtrado.copy()
+df_ocupacao["Ocupacao"] = (df_ocupacao["Matriculados"] / df_ocupacao["Vagas"] * 100).round(1)
+
+fig_ocup = px.bar(
+    df_ocupacao,
+    x="Unidade" if unidade_selecionada == "Todas" else "Segmento",
+    y="Ocupacao",
+    color="Segmento" if unidade_selecionada == "Todas" else "Unidade",
+    barmode="group",
+    color_discrete_sequence=[COLORS['primary'], COLORS['success'], COLORS['warning'], COLORS['danger']],
+    labels={"Ocupacao": "Taxa de Ocupação (%)"},
+    text="Ocupacao"
+)
+fig_ocup.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+fig_ocup.update_layout(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+    height=400,
+    yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 120]),
+    xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)'),
+    legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#a0a0b0'))
+)
+st.plotly_chart(fig_ocup, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== NOVATOS vs VETERANOS =====
+st.markdown("### Composição: Novatos vs Veteranos")
+
+col_nv1, col_nv2 = st.columns(2)
+
+with col_nv1:
+    # Pizza geral
+    fig_pizza_nv = go.Figure(data=[go.Pie(
+        labels=["Novatos", "Veteranos"],
+        values=[total["novatos"], total["veteranos"]],
+        hole=0.4,
+        marker_colors=[COLORS['warning'], COLORS['primary']]
+    )])
+    fig_pizza_nv.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        title_text="Distribuição Geral",
+        title_font_color='#ffffff',
+        height=350,
+        legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#a0a0b0'))
+    )
+    st.plotly_chart(fig_pizza_nv, use_container_width=True)
+
+with col_nv2:
+    # Barra por unidade/segmento
+    df_nv = df_resumo_filtrado.groupby("Unidade" if unidade_selecionada == "Todas" else "Segmento").agg({
+        "Novatos": "sum",
+        "Veteranos": "sum"
+    }).reset_index()
+
+    fig_nv_bar = px.bar(
+        df_nv,
+        x="Unidade" if unidade_selecionada == "Todas" else "Segmento",
+        y=["Novatos", "Veteranos"],
+        barmode="stack",
+        color_discrete_map={"Novatos": COLORS['warning'], "Veteranos": COLORS['primary']},
+        labels={"value": "Quantidade", "variable": "Tipo"}
+    )
+    fig_nv_bar.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        height=350,
+        legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#a0a0b0'), title='')
+    )
+    st.plotly_chart(fig_nv_bar, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== MAPA DE CALOR DE OCUPAÇÃO =====
+st.markdown("### Mapa de Calor - Ocupação por Unidade e Segmento")
+
+# Prepara dados para heatmap
+df_heatmap = df_resumo_all.copy()
+df_heatmap['Ocupacao'] = (df_heatmap['Matriculados'] / df_heatmap['Vagas'] * 100).round(1)
+
+# Extrai nome curto da unidade
+df_heatmap['Unidade_curta'] = df_heatmap['Unidade'].apply(
+    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+)
+
+# Cria pivot table para heatmap
+pivot_ocupacao = df_heatmap.pivot_table(
+    values='Ocupacao',
+    index='Segmento',
+    columns='Unidade_curta',
+    aggfunc='mean'
+).round(1)
+
+# Ordena segmentos
+ordem_seg = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
+pivot_ocupacao = pivot_ocupacao.reindex([s for s in ordem_seg if s in pivot_ocupacao.index])
+
+fig_heatmap = go.Figure(data=go.Heatmap(
+    z=pivot_ocupacao.values,
+    x=pivot_ocupacao.columns.tolist(),
+    y=pivot_ocupacao.index.tolist(),
+    colorscale=[
+        [0, '#22c55e'],      # Verde - baixa ocupação
+        [0.5, '#fbbf24'],    # Amarelo - média
+        [0.7, '#f97316'],    # Laranja - alta
+        [1, '#ef4444']       # Vermelho - lotado
+    ],
+    text=pivot_ocupacao.values,
+    texttemplate='%{text:.1f}%',
+    textfont={"size": 14, "color": "white"},
+    hovertemplate='Unidade: %{x}<br>Segmento: %{y}<br>Ocupação: %{z:.1f}%<extra></extra>',
+    colorbar=dict(
+        title=dict(text='Ocupação %', font=dict(color='#a0a0b0')),
+        tickfont=dict(color='#a0a0b0')
+    )
+))
+
+fig_heatmap.update_layout(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+    height=350,
+    xaxis=dict(tickfont=dict(color='#e0e0ff', size=12)),
+    yaxis=dict(tickfont=dict(color='#e0e0ff', size=12))
+)
+
+st.plotly_chart(fig_heatmap, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Seção de histórico
+if num_extracoes >= 2:
+    st.markdown("### 📈 Evolução Histórica")
+
+    tab1, tab2 = st.tabs(["Visão Geral", "Por Unidade"])
+
+    with tab1:
+        df_hist_total['ocupacao'] = round(df_hist_total['matriculados'] / df_hist_total['vagas'] * 100, 1)
+
+        fig_hist = go.Figure()
+
+        fig_hist.add_trace(go.Scatter(
+            x=df_hist_total['data_formatada'],
+            y=df_hist_total['ocupacao'],
+            mode='lines+markers',
+            name='Ocupação',
+            line=dict(color=COLORS['primary'], width=3),
+            marker=dict(size=10, color=COLORS['primary']),
+            fill='tozeroy',
+            fillcolor='rgba(102, 126, 234, 0.1)'
+        ))
+
+        fig_hist.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+            height=300,
+            yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='Ocupação %', range=[0, 100])
+        )
+
+        st.plotly_chart(fig_hist, use_container_width=True)
+
+    with tab2:
+        fig_unid = go.Figure()
+        cores_unid = [COLORS['primary'], COLORS['success'], COLORS['warning'], '#ec4899']
+
+        for i, unidade in enumerate(df_hist_unidades['unidade_nome'].unique()):
+            df_u = df_hist_unidades[df_hist_unidades['unidade_nome'] == unidade]
+            nome = unidade.split('(')[1].replace(')', '') if '(' in unidade else unidade
+
+            fig_unid.add_trace(go.Scatter(
+                x=df_u['data_formatada'],
+                y=df_u['matriculados'],
+                mode='lines+markers',
+                name=nome,
+                line=dict(color=cores_unid[i % len(cores_unid)], width=2),
+                marker=dict(size=8)
+            ))
+
+        fig_unid.update_layout(**PLOTLY_LAYOUT, height=300, hovermode='x unified')
+        st.plotly_chart(fig_unid, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Detalhamento por unidade
+st.markdown("### 🏫 Detalhamento por Unidade")
+
+tabs = st.tabs([u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome']
+                for u in resumo['unidades']])
+
+for i, tab in enumerate(tabs):
+    with tab:
+        unidade = resumo['unidades'][i]
+        unidade_vagas = vagas['unidades'][i]
+
+        t = unidade['total']
+        ocup = round(t['matriculados'] / t['vagas'] * 100, 1)
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Ocupação", f"{ocup}%")
+        c2.metric("Matriculados", t['matriculados'])
+        c3.metric("Disponíveis", t['disponiveis'])
+        c4.metric("Novatos / Veteranos", f"{t['novatos']} / {t['veteranos']}")
+
+        col_a, col_b = st.columns([2, 1])
+
+        with col_a:
+            df_seg_u = pd.DataFrame([
+                {'Segmento': seg, **vals}
+                for seg, vals in unidade['segmentos'].items()
+            ])
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=df_seg_u['Segmento'],
+                y=df_seg_u['vagas'],
+                name='Vagas',
+                marker_color='rgba(102, 126, 234, 0.3)'
+            ))
+            fig.add_trace(go.Bar(
+                x=df_seg_u['Segmento'],
+                y=df_seg_u['matriculados'],
+                name='Matriculados',
+                marker_color=COLORS['primary']
+            ))
+            fig.update_layout(**PLOTLY_LAYOUT, height=280, barmode='group')
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col_b:
+            fig_pie = go.Figure(data=[go.Pie(
+                labels=['Novatos', 'Veteranos'],
+                values=[t['novatos'], t['veteranos']],
+                hole=.6,
+                marker_colors=[COLORS['warning'], COLORS['primary']]
+            )])
+            fig_pie.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+                height=280,
+                showlegend=True,
+                legend=dict(orientation='h', yanchor='bottom', y=-0.2, bgcolor='rgba(0,0,0,0)')
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        with st.expander("📋 Ver todas as turmas"):
+            df_turmas = pd.DataFrame(unidade_vagas['turmas'])
+            # Calcula ocupação
+            df_turmas['ocupacao'] = (df_turmas['matriculados'] / df_turmas['vagas'] * 100).round(1)
+            df_turmas = df_turmas[['segmento', 'turma', 'vagas', 'matriculados', 'ocupacao', 'disponiveis', 'pre_matriculados']]
+            df_turmas.columns = ['Segmento', 'Turma', 'Vagas', 'Matr.', 'Ocup.%', 'Disp.', 'Pré-Matr.']
+            st.dataframe(df_turmas, use_container_width=True, hide_index=True)
+
+# ===== PAINEL EXECUTIVO - CEO =====
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("### 📊 Painel Executivo")
+
+# Prepara DataFrame com todas as informações
+df_relatorio = df_turmas_filtrado.copy()
+df_relatorio['Ocupação %'] = (df_relatorio['Matriculados'] / df_relatorio['Vagas'] * 100).round(1)
+
+# Filtra se uma turma específica foi selecionada
+if turma_selecionada != "Todas":
+    df_relatorio = df_relatorio[df_relatorio['Turma'] == turma_selecionada]
+
+# ===== KPIs ESTRATÉGICOS =====
+st.markdown("#### Indicadores Estratégicos")
+
+# Calcula KPIs
+total_vagas = df_relatorio['Vagas'].sum()
+total_matriculados = df_relatorio['Matriculados'].sum()
+total_novatos = df_relatorio['Novatos'].sum()
+total_veteranos = df_relatorio['Veteranos'].sum()
+total_disponiveis = df_relatorio['Disponiveis'].sum()
+total_pre_matr = df_relatorio['Pre-matriculados'].sum()
+
+taxa_ocupacao = (total_matriculados / total_vagas * 100) if total_vagas > 0 else 0
+taxa_retencao = (total_veteranos / total_matriculados * 100) if total_matriculados > 0 else 0
+taxa_captacao = (total_novatos / total_vagas * 100) if total_vagas > 0 else 0
+taxa_conversao_pre = (total_pre_matr / total_disponiveis * 100) if total_disponiveis > 0 else 0
+
+col_kpi1, col_kpi2, col_kpi3, col_kpi4, col_kpi5 = st.columns(5)
+
+with col_kpi1:
+    st.metric(
+        "Taxa de Ocupação",
+        f"{taxa_ocupacao:.1f}%",
+        help="Matriculados / Vagas totais"
+    )
+with col_kpi2:
+    st.metric(
+        "Taxa de Retenção",
+        f"{taxa_retencao:.1f}%",
+        help="Veteranos / Total matriculados"
+    )
+with col_kpi3:
+    st.metric(
+        "Taxa de Captação",
+        f"{taxa_captacao:.1f}%",
+        help="Novatos / Vagas totais"
+    )
+with col_kpi4:
+    st.metric(
+        "Pré-matrículas",
+        f"{total_pre_matr}",
+        delta=f"{taxa_conversao_pre:.0f}% das vagas",
+        help="Potenciais novos alunos"
+    )
+with col_kpi5:
+    receita_potencial = total_disponiveis  # Cada vaga = potencial receita
+    st.metric(
+        "Vagas Disponíveis",
+        f"{total_disponiveis}",
+        help="Oportunidade de crescimento"
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== ALERTAS EXECUTIVOS =====
+turmas_criticas = df_relatorio[df_relatorio['Ocupação %'] >= 95]
+turmas_atencao = df_relatorio[(df_relatorio['Ocupação %'] >= 85) & (df_relatorio['Ocupação %'] < 95)]
+turmas_oportunidade = df_relatorio[df_relatorio['Ocupação %'] < 60]
+
+col_alerta1, col_alerta2, col_alerta3 = st.columns(3)
+
+with col_alerta1:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #3b82f6;'>
+        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0; text-transform: uppercase;'>Turmas Lotadas (≥95%)</p>
+        <p style='color: #ffffff; font-size: 2rem; font-weight: 700; margin: 0.5rem 0;'>{len(turmas_criticas)}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>Considerar abertura de novas turmas</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_alerta2:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #f59e0b;'>
+        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0; text-transform: uppercase;'>Turmas em Atenção (85-95%)</p>
+        <p style='color: #ffffff; font-size: 2rem; font-weight: 700; margin: 0.5rem 0;'>{len(turmas_atencao)}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>Monitorar próximas matrículas</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_alerta3:
+    st.markdown(f"""
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #10b981;'>
+        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0; text-transform: uppercase;'>Oportunidade (<60%)</p>
+        <p style='color: #ffffff; font-size: 2rem; font-weight: 700; margin: 0.5rem 0;'>{len(turmas_oportunidade)}</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>Potencial para campanhas de captação</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== RANKING DE PERFORMANCE POR UNIDADE =====
+st.markdown("#### Ranking de Unidades por Performance")
+
+df_ranking = df_relatorio.groupby('Unidade').agg({
+    'Vagas': 'sum',
+    'Matriculados': 'sum',
+    'Novatos': 'sum',
+    'Veteranos': 'sum',
+    'Disponiveis': 'sum'
+}).reset_index()
+
+df_ranking['Ocupação'] = (df_ranking['Matriculados'] / df_ranking['Vagas'] * 100).round(1)
+df_ranking['Retenção'] = (df_ranking['Veteranos'] / df_ranking['Matriculados'] * 100).round(1)
+df_ranking['Captação'] = (df_ranking['Novatos'] / df_ranking['Vagas'] * 100).round(1)
+df_ranking = df_ranking.sort_values('Ocupação', ascending=False)
+
+# Extrai nome curto
+df_ranking['Unidade'] = df_ranking['Unidade'].apply(
+    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+)
+
+st.dataframe(
+    df_ranking[['Unidade', 'Vagas', 'Matriculados', 'Ocupação', 'Retenção', 'Captação', 'Disponiveis']],
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Ocupação": st.column_config.ProgressColumn(
+            "Ocupação %",
+            format="%.1f%%",
+            min_value=0,
+            max_value=100,
+        ),
+        "Retenção": st.column_config.ProgressColumn(
+            "Retenção %",
+            format="%.1f%%",
+            min_value=0,
+            max_value=100,
+        ),
+        "Captação": st.column_config.ProgressColumn(
+            "Captação %",
+            format="%.1f%%",
+            min_value=0,
+            max_value=100,
+        ),
+    }
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ===== RELATÓRIO DETALHADO DAS TURMAS =====
+st.markdown("#### Detalhamento por Turma")
+
+# Filtros inline para o detalhamento
+col_filtro1, col_filtro2, col_filtro3, col_filtro4 = st.columns(4)
+
+with col_filtro1:
+    unidades_det = ["Todas"] + sorted(df_relatorio['Unidade'].apply(
+        lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+    ).unique().tolist())
+    filtro_unidade_det = st.selectbox("Filtrar Unidade", unidades_det, key="filtro_unidade_det")
+
+with col_filtro2:
+    segmentos_det = ["Todos"] + sorted(df_relatorio['Segmento'].unique().tolist())
+    filtro_segmento_det = st.selectbox("Filtrar Segmento", segmentos_det, key="filtro_segmento_det")
+
+with col_filtro3:
+    turnos_det = ["Todos"] + sorted(df_relatorio['Turno'].unique().tolist())
+    filtro_turno_det = st.selectbox("Filtrar Turno", turnos_det, key="filtro_turno_det")
+
+with col_filtro4:
+    ordenacao = st.selectbox("Ordenar por", ["Ocupação (maior)", "Ocupação (menor)", "Vagas (maior)", "Disponíveis (maior)"], key="ordenacao_det")
+
+# Aplica filtros do detalhamento
+df_det = df_relatorio.copy()
+
+if filtro_unidade_det != "Todas":
+    df_det = df_det[df_det['Unidade'].str.contains(filtro_unidade_det, case=False)]
+
+if filtro_segmento_det != "Todos":
+    df_det = df_det[df_det['Segmento'] == filtro_segmento_det]
+
+if filtro_turno_det != "Todos":
+    df_det = df_det[df_det['Turno'] == filtro_turno_det]
+
+# Aplica ordenação
+if ordenacao == "Ocupação (maior)":
+    df_det = df_det.sort_values('Ocupação %', ascending=False)
+elif ordenacao == "Ocupação (menor)":
+    df_det = df_det.sort_values('Ocupação %', ascending=True)
+elif ordenacao == "Vagas (maior)":
+    df_det = df_det.sort_values('Vagas', ascending=False)
+elif ordenacao == "Disponíveis (maior)":
+    df_det = df_det.sort_values('Disponiveis', ascending=False)
+
+# Reorganiza colunas para exibição
+colunas_exibir = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matriculados', 'Ocupação %', 'Novatos', 'Veteranos', 'Disponiveis', 'Pre-matriculados']
+df_exibir = df_det[colunas_exibir].copy()
+
+# Extrai nome curto da unidade
+df_exibir['Unidade'] = df_exibir['Unidade'].apply(lambda x: x.split('(')[1].replace(')', '') if '(' in x else x)
+df_exibir.columns = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matr.', 'Ocup.', 'Nov.', 'Vet.', 'Disp.', 'Pré']
+
+# Exibe tabela com estilização profissional
+st.dataframe(
+    df_exibir,
+    use_container_width=True,
+    hide_index=True,
+    height=450,
+    column_config={
+        "Ocup.": st.column_config.ProgressColumn(
+            "Ocupação",
+            format="%.1f%%",
+            min_value=0,
+            max_value=100,
+        ),
+        "Vagas": st.column_config.NumberColumn("Vagas", format="%d"),
+        "Matr.": st.column_config.NumberColumn("Matr.", format="%d"),
+        "Nov.": st.column_config.NumberColumn("Novatos", format="%d"),
+        "Vet.": st.column_config.NumberColumn("Vet.", format="%d"),
+        "Disp.": st.column_config.NumberColumn("Disp.", format="%d"),
+        "Pré": st.column_config.NumberColumn("Pré-Matr.", format="%d"),
+    }
+)
+
+st.caption(f"Exibindo {len(df_exibir)} turmas • Filtros aplicados: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Download do relatório filtrado
+csv_filtrado = df_relatorio.to_csv(index=False).encode('utf-8')
+col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 2])
+with col_dl1:
+    st.download_button(
+        label="📥 Exportar CSV",
+        data=csv_filtrado,
+        file_name=f"relatorio_executivo_{resumo['data_extracao'][:10]}.csv",
+        mime="text/csv",
+    )
+with col_dl2:
+    excel_data = df_relatorio.to_csv(index=False, sep=';').encode('utf-8')
+    st.download_button(
+        label="📊 Exportar Excel",
+        data=excel_data,
+        file_name=f"relatorio_executivo_{resumo['data_extracao'][:10]}.csv",
+        mime="text/csv",
+    )
+
+# Footer
+st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown(f"""
+    <div style='text-align: center; color: #404060; font-size: 0.8rem; padding: 2rem 0;'>
+        <p>Dashboard atualizado automaticamente às 6h - Última extração: {resumo['data_extracao'][:16].replace('T', ' ')}</p>
+        <p style='color: #303050;'>Colégio Elo - 2026</p>
+    </div>
+""", unsafe_allow_html=True)
