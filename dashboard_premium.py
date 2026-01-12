@@ -411,7 +411,7 @@ def gerar_relatorio_pdf(resumo, df_perf, df_turmas, total):
     data_hoje = datetime.now().strftime('%d/%m/%Y às %H:%M')
     data_extracao = resumo['data_extracao'][:16].replace('T', ' ')
     ocupacao_geral = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vagas'] > 0 else 0
-    ating_meta = round(total['matriculados'] / 4200 * 100, 1)
+    ating_meta = round(total['matriculados'] / 4100 * 100, 1)
     ating_novatos = round(total['novatos'] / 1000 * 100, 1)
 
     html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Executivo - Colégio Elo</title>
@@ -434,7 +434,7 @@ def gerar_relatorio_pdf(resumo, df_perf, df_turmas, total):
     <div class="header"><h1>Relatório Executivo - Colégio Elo</h1><p>Período: {resumo['periodo']} | Gerado em: {data_hoje} | Dados de: {data_extracao}</p></div>
     <div class="kpi-grid">
     <div class="kpi-box {'green' if ocupacao_geral >= 80 else 'yellow' if ocupacao_geral >= 60 else 'red'}"><div class="kpi-label">Ocupação Geral</div><div class="kpi-value">{ocupacao_geral}%</div><div class="kpi-detail">{total['matriculados']:,} / {total['vagas']:,} vagas</div></div>
-    <div class="kpi-box {'green' if ating_meta >= 100 else 'yellow' if ating_meta >= 80 else 'red'}"><div class="kpi-label">Meta Matrículas (4.200)</div><div class="kpi-value">{ating_meta}%</div><div class="kpi-detail">{total['matriculados']:,} alunos ({total['matriculados'] - 4200:+,})</div></div>
+    <div class="kpi-box {'green' if ating_meta >= 100 else 'yellow' if ating_meta >= 80 else 'red'}"><div class="kpi-label">Meta Matrículas (4.100)</div><div class="kpi-value">{ating_meta}%</div><div class="kpi-detail">{total['matriculados']:,} alunos ({total['matriculados'] - 4100:+,})</div></div>
     <div class="kpi-box {'green' if ating_novatos >= 100 else 'yellow' if ating_novatos >= 80 else 'red'}"><div class="kpi-label">Meta Novatos (1.000)</div><div class="kpi-value">{ating_novatos}%</div><div class="kpi-detail">{total['novatos']:,} novatos ({total['novatos'] - 1000:+,})</div></div>
     </div>
     <div class="kpi-grid">
@@ -661,7 +661,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 col_left, col_right = st.columns(2)
 
 with col_left:
-    st.markdown("### Ocupação por Unidade")
+    st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Ocupação por Unidade</h3>", unsafe_allow_html=True)
 
     df_unidades = pd.DataFrame([
         {
@@ -684,18 +684,24 @@ with col_left:
         hoverinfo='skip'
     ))
 
-    # Barra de ocupação
-    colors = [COLORS['danger'] if o >= 80 else COLORS['success'] if o < 60 else COLORS['warning']
-              for o in df_unidades['Ocupação']]
+    # Barra de ocupação (verde escuro = 100% ótimo)
+    def cor_ocupacao(o):
+        if o >= 95: return '#065f46'    # Verde escuro - ótimo
+        elif o >= 85: return '#10b981'  # Verde - muito bom
+        elif o >= 70: return '#6ee7b7'  # Verde água - bom
+        elif o >= 50: return '#fbbf24'  # Amarelo - médio
+        elif o >= 30: return '#f97316'  # Laranja - baixo
+        else: return '#ef4444'          # Vermelho - crítico
+    colors = [cor_ocupacao(o) for o in df_unidades['Ocupação']]
 
     fig1.add_trace(go.Bar(
         name='Ocupação',
         x=df_unidades['Unidade'],
         y=df_unidades['Ocupação'],
         marker_color=colors,
-        text=df_unidades['Ocupação'].apply(lambda x: f'{x}%'),
+        text=df_unidades.apply(lambda r: f"{r['Ocupação']}%<br>({int(r['Matriculados'])})", axis=1),
         textposition='outside',
-        textfont=dict(color='#ffffff', size=14, family='Inter')
+        textfont=dict(color='#ffffff', size=12, family='Inter')
     ))
 
     fig1.update_layout(
@@ -704,15 +710,15 @@ with col_left:
         font=dict(color='#a0a0b0', family='Inter, sans-serif'),
         barmode='overlay',
         showlegend=False,
-        height=350,
-        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 110], title=''),
+        height=380,
+        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 120], title=''),
         xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
     )
 
     st.plotly_chart(fig1, use_container_width=True)
 
 with col_right:
-    st.markdown("### Distribuição por Segmento")
+    st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Distribuição por Segmento</h3>", unsafe_allow_html=True)
 
     segmentos_total = {}
     for unidade in resumo['unidades']:
@@ -781,9 +787,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 # Mapeamento por código da unidade (mais preciso)
 METAS_POR_CODIGO = {
     "01-BV": 1280,   # Boa Viagem
-    "02-CD": 1320,   # Candeias (Jaboatão)
+    "02-CD": 1270,   # Candeias (Jaboatão)
     "03-JG": 750,    # Janga (Paulista)
-    "04-CDR": 850,   # Cordeiro
+    "04-CDR": 800,   # Cordeiro
 }
 # Metas de NOVATOS por unidade (proporcional)
 METAS_NOVATOS = {
@@ -793,10 +799,10 @@ METAS_NOVATOS = {
     "04-CDR": 202,   # Cordeiro
 }
 META_NOVATOS = 1000
-META_TOTAL = 1280 + 1320 + 750 + 850  # 4200
+META_TOTAL = 1280 + 1270 + 750 + 800  # 4100
 
 # ===== INSIGHTS EXECUTIVOS - CEO =====
-st.markdown("### 💡 Insights Executivos")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>💡 Insights Executivos</h3>", unsafe_allow_html=True)
 
 # Calcula métricas por unidade com metas
 df_perf_unidade = df_resumo_all.groupby('Unidade').agg({
@@ -809,11 +815,11 @@ def get_meta(unidade_nome):
     if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
         return 1280
     elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
-        return 1320
+        return 1270
     elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
         return 750
     elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
-        return 850
+        return 800
     return 0
 
 def get_meta_novatos(unidade_nome):
@@ -887,9 +893,13 @@ with col_meta3:
     </div>
     """.replace(",", "."), unsafe_allow_html=True)
 
-# Linha 2 - Metas por unidade
+# Linha 2 - Metas por unidade (cards elegantes)
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("#### Atingimento de Metas por Unidade")
+st.markdown("""
+<div style='display: flex; align-items: center; margin-bottom: 1rem;'>
+    <h4 style='margin: 0; color: #e0e0ff;'>🎯 Atingimento de Metas por Unidade</h4>
+</div>
+""", unsafe_allow_html=True)
 
 cols_unidades = st.columns(4)
 
@@ -899,54 +909,43 @@ for i, (_, row) in enumerate(df_perf_unidade.iterrows()):
         sinal = '+' if row['Gap'] >= 0 else ''
         cor_nov = '#10b981' if row['Gap_Novatos'] >= 0 else '#f59e0b' if row['Ating_Novatos'] >= 80 else '#ef4444'
         sinal_nov = '+' if row['Gap_Novatos'] >= 0 else ''
+
+        # Ícone baseado no status
+        icone = '✅' if row['Gap'] >= 0 else '⚠️' if row['Atingimento'] >= 80 else '🔴'
+
+        # Barra de progresso visual
+        progresso = min(row['Atingimento'], 100)
+
         st.markdown(f"""
-        <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1rem; border-radius: 12px; border-left: 4px solid {cor}; margin-bottom: 0.5rem;'>
-            <p style='color: #ffffff; font-size: 1rem; font-weight: 600; margin: 0;'>{row['Nome_curto']}</p>
-            <p style='color: {cor}; font-size: 1.5rem; font-weight: 700; margin: 0.2rem 0;'>{row['Atingimento']:.1f}%</p>
-            <p style='color: #94a3b8; font-size: 0.7rem; margin: 0;'>Matr: {int(row['Matriculados'])} / {int(row['Meta'])} ({sinal}{int(row['Gap'])})</p>
-            <p style='color: {cor_nov}; font-size: 0.7rem; margin: 0.2rem 0 0 0;'>Novatos: {int(row['Novatos'])} / {int(row['Meta_Novatos'])} ({sinal_nov}{int(row['Gap_Novatos'])})</p>
-            <p style='color: #64748b; font-size: 0.65rem; margin: 0.2rem 0 0 0;'>Vet: {int(row['Veteranos'])} | Ating. Nov: {row['Ating_Novatos']:.0f}%</p>
+        <div style='background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); padding: 1.2rem; border-radius: 16px; border: 1px solid rgba(102, 126, 234, 0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 0.5rem;'>
+            <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;'>
+                <span style='color: #ffffff; font-size: 1.1rem; font-weight: 700;'>{row['Nome_curto']}</span>
+                <span style='font-size: 1.2rem;'>{icone}</span>
+            </div>
+            <p style='color: {cor}; font-size: 2.2rem; font-weight: 800; margin: 0.3rem 0; text-align: center;'>{row['Atingimento']:.1f}%</p>
+            <div style='background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; margin: 0.5rem 0; overflow: hidden;'>
+                <div style='background: linear-gradient(90deg, {cor} 0%, {cor}aa 100%); width: {progresso}%; height: 100%; border-radius: 10px;'></div>
+            </div>
+            <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.8rem;'>
+                <div style='background: rgba(255,255,255,0.05); padding: 0.4rem; border-radius: 8px; text-align: center;'>
+                    <p style='color: #94a3b8; font-size: 0.6rem; margin: 0; text-transform: uppercase;'>Matrículas</p>
+                    <p style='color: #ffffff; font-size: 0.9rem; font-weight: 600; margin: 0;'>{int(row['Matriculados'])}<span style='color: #64748b; font-size: 0.7rem;'>/{int(row['Meta'])}</span></p>
+                    <p style='color: {cor}; font-size: 0.7rem; margin: 0;'>{sinal}{int(row['Gap'])}</p>
+                </div>
+                <div style='background: rgba(255,255,255,0.05); padding: 0.4rem; border-radius: 8px; text-align: center;'>
+                    <p style='color: #94a3b8; font-size: 0.6rem; margin: 0; text-transform: uppercase;'>Novatos</p>
+                    <p style='color: #ffffff; font-size: 0.9rem; font-weight: 600; margin: 0;'>{int(row['Novatos'])}<span style='color: #64748b; font-size: 0.7rem;'>/{int(row['Meta_Novatos'])}</span></p>
+                    <p style='color: {cor_nov}; font-size: 0.7rem; margin: 0;'>{sinal_nov}{int(row['Gap_Novatos'])}</p>
+                </div>
+            </div>
+            <p style='color: #64748b; font-size: 0.65rem; margin: 0.5rem 0 0 0; text-align: center;'>Veteranos: {int(row['Veteranos'])} | Ocupação: {row['Ocupacao']:.0f}%</p>
         </div>
         """, unsafe_allow_html=True)
-
-# Linha 3 - Resumo executivo
-st.markdown("<br>", unsafe_allow_html=True)
-col_res1, col_res2, col_res3 = st.columns(3)
-
-melhor_unidade = df_perf_unidade.loc[df_perf_unidade['Atingimento'].idxmax()]
-pior_unidade = df_perf_unidade.loc[df_perf_unidade['Atingimento'].idxmin()]
-
-with col_res1:
-    st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #10b981;'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Melhor Atingimento</p>
-        <p style='color: #10b981; font-size: 1.4rem; font-weight: 700; margin: 0.3rem 0;'>{melhor_unidade['Nome_curto']}</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{melhor_unidade['Atingimento']:.1f}% da meta</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_res2:
-    st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #ef4444;'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Requer Atenção</p>
-        <p style='color: #ef4444; font-size: 1.4rem; font-weight: 700; margin: 0.3rem 0;'>{pior_unidade['Nome_curto']}</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{pior_unidade['Atingimento']:.1f}% da meta (faltam {abs(int(pior_unidade['Gap']))})</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col_res3:
-    st.markdown(f"""
-    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid #3b82f6;'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Potencial de Crescimento</p>
-        <p style='color: #3b82f6; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{total['disponiveis']:,}</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>vagas disponíveis</p>
-    </div>
-    """.replace(",", "."), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== GRÁFICO DE ATINGIMENTO DE METAS =====
-st.markdown("### 📊 Atingimento de Metas por Unidade")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Progresso das Metas</h3>", unsafe_allow_html=True)
 
 fig_metas = go.Figure()
 
@@ -990,62 +989,96 @@ fig_metas.update_layout(
 
 st.plotly_chart(fig_metas, use_container_width=True)
 
-# ===== ALERTAS DE AÇÃO IMEDIATA =====
-st.markdown("### ⚠️ Alertas de Ação Imediata")
+# ===== ALERTAS DE AÇÃO IMEDIATA POR UNIDADE =====
+st.markdown("""
+<h3 style='color: #ffffff; font-weight: 700;'>⚠️ Alertas de Ação por Unidade</h3>
+""", unsafe_allow_html=True)
 
-# Turmas com maior gap para a meta
+# Seletor de quantidade
+col_config1, col_config2 = st.columns([3, 1])
+with col_config2:
+    qtd_alertas = st.selectbox("Exibir", [5, 10, 15, 20, "Todos"], index=0, key="qtd_alertas")
+
+# Turmas com ocupação calculada
 turmas_criticas = df_turmas_all.copy()
 turmas_criticas['Ocupacao'] = (turmas_criticas['Matriculados'] / turmas_criticas['Vagas'] * 100).round(1)
+turmas_criticas['Unidade_curta'] = turmas_criticas['Unidade'].apply(
+    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+)
 
-# Turmas quase lotadas (>95%) - precisam de nova turma
-turmas_lotadas = turmas_criticas[turmas_criticas['Ocupacao'] >= 95].sort_values('Ocupacao', ascending=False)
+# Tabs por unidade
+unidades_unicas = sorted(turmas_criticas['Unidade_curta'].unique())
+tabs_alertas = st.tabs(unidades_unicas)
 
-# Turmas com muitas vagas (<50%) - precisam de captação
-turmas_vazias = turmas_criticas[turmas_criticas['Ocupacao'] < 50].sort_values('Ocupacao')
+for i, tab in enumerate(tabs_alertas):
+    with tab:
+        unidade = unidades_unicas[i]
+        df_unidade = turmas_criticas[turmas_criticas['Unidade_curta'] == unidade]
 
-col_alert1, col_alert2 = st.columns(2)
+        # Turmas lotadas e vazias desta unidade
+        lotadas = df_unidade[df_unidade['Ocupacao'] >= 95].sort_values('Ocupacao', ascending=False)
+        vazias = df_unidade[df_unidade['Ocupacao'] < 50].sort_values('Ocupacao')
 
-with col_alert1:
-    st.markdown("""
-    <p style='color: #ef4444; font-weight: 600; margin-bottom: 0.5rem;'>🔴 Turmas Lotadas (≥95%) - Considerar Nova Turma</p>
-    """, unsafe_allow_html=True)
+        # Limita quantidade
+        limite = None if qtd_alertas == "Todos" else qtd_alertas
+        lotadas_exibir = lotadas if limite is None else lotadas.head(limite)
+        vazias_exibir = vazias if limite is None else vazias.head(limite)
 
-    if len(turmas_lotadas) > 0:
-        for _, t in turmas_lotadas.head(5).iterrows():
-            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
+        col_a1, col_a2 = st.columns(2)
+
+        with col_a1:
             st.markdown(f"""
-            <div style='background: rgba(239, 68, 68, 0.1); padding: 0.5rem 0.8rem; border-radius: 8px; margin-bottom: 0.3rem; border-left: 3px solid #ef4444;'>
-                <span style='color: #ffffff; font-weight: 500;'>{t['Turma']}</span>
-                <span style='color: #94a3b8; font-size: 0.8rem;'> • {unidade_curta}</span>
-                <span style='color: #ef4444; float: right; font-weight: 600;'>{t['Ocupacao']:.0f}%</span>
+            <div style='background: rgba(239, 68, 68, 0.15); padding: 1rem; border-radius: 12px; border-left: 5px solid #ef4444; margin-bottom: 0.8rem;'>
+                <p style='color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0;'>🔴 TURMAS LOTADAS (≥95%)</p>
+                <p style='color: #fca5a5; font-size: 0.85rem; margin: 0.3rem 0 0 0;'>{len(lotadas)} turmas encontradas</p>
             </div>
             """, unsafe_allow_html=True)
-    else:
-        st.info("Nenhuma turma com ocupação ≥95%")
 
-with col_alert2:
-    st.markdown("""
-    <p style='color: #f59e0b; font-weight: 600; margin-bottom: 0.5rem;'>🟡 Turmas com Baixa Ocupação (<50%) - Foco em Captação</p>
-    """, unsafe_allow_html=True)
+            if len(lotadas_exibir) > 0:
+                for _, t in lotadas_exibir.iterrows():
+                    st.markdown(f"""
+                    <div style='background: rgba(30, 41, 59, 0.9); padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 0.4rem; border: 1px solid rgba(239, 68, 68, 0.3);'>
+                        <div style='display: flex; justify-content: space-between; align-items: center;'>
+                            <span style='color: #ffffff; font-weight: 600;'>{t['Turma']}</span>
+                            <span style='color: #ef4444; font-weight: 800; font-size: 1.1rem;'>{t['Ocupacao']:.0f}%</span>
+                        </div>
+                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{t['Segmento']} • {int(t['Matriculados'])}/{int(t['Vagas'])} alunos</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                if limite and len(lotadas) > limite:
+                    st.caption(f"... e mais {len(lotadas) - limite} turmas")
+            else:
+                st.markdown("<p style='color: #10b981; font-size: 0.9rem; padding: 0.5rem;'>✅ Nenhuma turma lotada nesta unidade</p>", unsafe_allow_html=True)
 
-    if len(turmas_vazias) > 0:
-        for _, t in turmas_vazias.head(5).iterrows():
-            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
-            vagas_disp = t['Vagas'] - t['Matriculados']
+        with col_a2:
             st.markdown(f"""
-            <div style='background: rgba(251, 191, 36, 0.1); padding: 0.5rem 0.8rem; border-radius: 8px; margin-bottom: 0.3rem; border-left: 3px solid #f59e0b;'>
-                <span style='color: #ffffff; font-weight: 500;'>{t['Turma']}</span>
-                <span style='color: #94a3b8; font-size: 0.8rem;'> • {unidade_curta}</span>
-                <span style='color: #f59e0b; float: right; font-weight: 600;'>{int(vagas_disp)} vagas</span>
+            <div style='background: rgba(251, 191, 36, 0.15); padding: 1rem; border-radius: 12px; border-left: 5px solid #f59e0b; margin-bottom: 0.8rem;'>
+                <p style='color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0;'>🟡 BAIXA OCUPAÇÃO (<50%)</p>
+                <p style='color: #fcd34d; font-size: 0.85rem; margin: 0.3rem 0 0 0;'>{len(vazias)} turmas - foco em captação</p>
             </div>
             """, unsafe_allow_html=True)
-    else:
-        st.success("Nenhuma turma com ocupação <50%")
+
+            if len(vazias_exibir) > 0:
+                for _, t in vazias_exibir.iterrows():
+                    vagas_disp = int(t['Vagas'] - t['Matriculados'])
+                    st.markdown(f"""
+                    <div style='background: rgba(30, 41, 59, 0.9); padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 0.4rem; border: 1px solid rgba(251, 191, 36, 0.3);'>
+                        <div style='display: flex; justify-content: space-between; align-items: center;'>
+                            <span style='color: #ffffff; font-weight: 600;'>{t['Turma']}</span>
+                            <span style='color: #f59e0b; font-weight: 800; font-size: 1.1rem;'>{vagas_disp} vagas</span>
+                        </div>
+                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{t['Segmento']} • {t['Ocupacao']:.0f}% ocupação</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                if limite and len(vazias) > limite:
+                    st.caption(f"... e mais {len(vazias) - limite} turmas")
+            else:
+                st.markdown("<p style='color: #10b981; font-size: 0.9rem; padding: 0.5rem;'>✅ Todas as turmas acima de 50%</p>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== GRÁFICO DE OCUPAÇÃO POR UNIDADE/SEGMENTO =====
-st.markdown("### Taxa de Ocupação por Unidade e Segmento")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Taxa de Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
 df_ocupacao = df_resumo_filtrado.copy()
 df_ocupacao["Ocupacao"] = (df_ocupacao["Matriculados"] / df_ocupacao["Vagas"] * 100).round(1)
@@ -1075,7 +1108,7 @@ st.plotly_chart(fig_ocup, use_container_width=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== NOVATOS vs VETERANOS =====
-st.markdown("### Composição: Novatos vs Veteranos")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Composição: Novatos vs Veteranos</h3>", unsafe_allow_html=True)
 
 col_nv1, col_nv2 = st.columns(2)
 
@@ -1125,7 +1158,7 @@ with col_nv2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== MAPA DE CALOR DE OCUPAÇÃO =====
-st.markdown("### Mapa de Calor - Ocupação por Unidade e Segmento")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Mapa de Calor - Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
 # Prepara dados para heatmap
 df_heatmap = df_resumo_all.copy()
@@ -1153,10 +1186,12 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     x=pivot_ocupacao.columns.tolist(),
     y=pivot_ocupacao.index.tolist(),
     colorscale=[
-        [0, '#22c55e'],      # Verde - baixa ocupação
-        [0.5, '#fbbf24'],    # Amarelo - média
-        [0.7, '#f97316'],    # Laranja - alta
-        [1, '#ef4444']       # Vermelho - lotado
+        [0, '#ef4444'],      # Vermelho - 0% (péssimo)
+        [0.3, '#f97316'],    # Laranja - 30%
+        [0.5, '#fbbf24'],    # Amarelo - 50%
+        [0.7, '#6ee7b7'],    # Verde água - 70%
+        [0.85, '#10b981'],   # Verde - 85%
+        [1, '#065f46']       # Verde escuro - 100% (ótimo)
     ],
     text=pivot_ocupacao.values,
     texttemplate='%{text:.1f}%',
@@ -1183,7 +1218,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # Seção de histórico
 if num_extracoes >= 2:
-    st.markdown("### 📈 Evolução Histórica")
+    st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📈 Evolução Histórica</h3>", unsafe_allow_html=True)
 
     tab1, tab2 = st.tabs(["Visão Geral", "Por Unidade"])
 
@@ -1236,7 +1271,7 @@ if num_extracoes >= 2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # Detalhamento por unidade
-st.markdown("### 🏫 Detalhamento por Unidade")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🏫 Detalhamento por Unidade</h3>", unsafe_allow_html=True)
 
 tabs = st.tabs([u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome']
                 for u in resumo['unidades']])
@@ -1306,7 +1341,7 @@ for i, tab in enumerate(tabs):
 
 # ===== PAINEL EXECUTIVO - CEO =====
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("### 📊 Painel Executivo")
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Painel Executivo</h3>", unsafe_allow_html=True)
 
 # Prepara DataFrame com todas as informações
 df_relatorio = df_turmas_filtrado.copy()
@@ -1317,7 +1352,7 @@ if turma_selecionada != "Todas":
     df_relatorio = df_relatorio[df_relatorio['Turma'] == turma_selecionada]
 
 # ===== KPIs ESTRATÉGICOS =====
-st.markdown("#### Indicadores Estratégicos")
+st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Indicadores Estratégicos</h4>", unsafe_allow_html=True)
 
 # Calcula KPIs
 total_vagas = df_relatorio['Vagas'].sum()
@@ -1406,7 +1441,7 @@ with col_alerta3:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== RANKING DE PERFORMANCE POR UNIDADE =====
-st.markdown("#### Ranking de Unidades por Performance")
+st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Ranking de Unidades por Performance</h4>", unsafe_allow_html=True)
 
 df_ranking = df_relatorio.groupby('Unidade').agg({
     'Vagas': 'sum',
@@ -1455,7 +1490,7 @@ st.dataframe(
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== RELATÓRIO DETALHADO DAS TURMAS =====
-st.markdown("#### Detalhamento por Turma")
+st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Detalhamento por Turma</h4>", unsafe_allow_html=True)
 
 # Filtros inline para o detalhamento
 col_filtro1, col_filtro2, col_filtro3, col_filtro4 = st.columns(4)
