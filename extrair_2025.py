@@ -243,31 +243,90 @@ def main():
                 current_url = page.url
                 base_url = current_url.split('/')[0] + '//' + current_url.split('/')[2]
 
-                # Tenta mudar o período para 2025 primeiro
-                # Busca o seletor de período na interface
-                try:
-                    # Procura dropdown de período
-                    page.click('text=2026', timeout=3000)
-                    page.wait_for_timeout(500)
-                    page.click('text=2025', timeout=3000)
-                    page.wait_for_timeout(2000)
-                    print("    Período alterado para 2025")
-                except:
-                    print("    Usando período padrão")
-
+                # Navega para relatório
                 report_url = f"{base_url}/busca_central_relatorios/?relatorio=aluno_turma/resumo_vagas_por_turma"
                 page.goto(report_url, wait_until="domcontentloaded")
                 page.wait_for_timeout(3000)
 
-                # Seleciona ano 2025 no filtro do relatório se disponível
+                # Captura screenshot para debug
+                screenshot_path = OUTPUT_DIR / f"debug_relatorio_{unidade['codigo']}.png"
+                page.screenshot(path=str(screenshot_path))
+                print(f"    Screenshot salvo: {screenshot_path}")
+
+                # Tenta selecionar período 2025 no filtro do relatório
+                # O sistema usa dropdown customizado (não HTML select nativo)
+                periodo_selecionado = False
+
                 try:
-                    # Procura campo de período no relatório
-                    periodo_field = page.locator('input[name*="periodo"], select[name*="periodo"], input[placeholder*="2026"]').first
-                    if periodo_field:
-                        periodo_field.fill("2025")
+                    # Procura o campo Período que mostra "2026"
+                    # Clica no dropdown de período para abrir as opções
+                    periodo_dropdown = page.locator('div:has-text("Período")').locator('..').locator('input, div[role="combobox"], div[role="listbox"]').first
+
+                    # Tenta clicar no campo que contém "2026"
+                    campo_2026 = page.locator('input[value="2026"], div:text-is("2026")').first
+                    if campo_2026.is_visible():
+                        campo_2026.click()
+                        page.wait_for_timeout(1000)
+                        print("    Clicou no campo de período")
+
+                        # Procura opção 2025 no dropdown aberto
+                        opcao_2025 = page.locator('div[role="option"]:has-text("2025"), li:has-text("2025"), span:text-is("2025"), div:text-is("2025")').first
+                        if opcao_2025.is_visible():
+                            opcao_2025.click()
+                            periodo_selecionado = True
+                            print("    Período 2025 selecionado!")
+                            page.wait_for_timeout(2000)
+                except Exception as e:
+                    print(f"    Método 1 falhou: {e}")
+
+                # Método 2: Tenta localizar pelo label "Período" e clicar no campo adjacente
+                if not periodo_selecionado:
+                    try:
+                        # Material Design dropdown - clica no container do período
+                        page.click('text=Período', timeout=2000)
                         page.wait_for_timeout(500)
-                except:
-                    pass
+                        # Agora clica no valor 2026 para abrir dropdown
+                        page.click('text=2026', timeout=2000)
+                        page.wait_for_timeout(1000)
+                        # Seleciona 2025
+                        page.click('text=2025', timeout=2000)
+                        periodo_selecionado = True
+                        print("    Período 2025 selecionado via cliques!")
+                        page.wait_for_timeout(2000)
+                    except Exception as e:
+                        print(f"    Método 2 falhou: {e}")
+
+                # Método 3: Tenta clicar diretamente no dropdown e digitar
+                if not periodo_selecionado:
+                    try:
+                        # Procura input dentro de um container com label Período
+                        inputs = page.locator('input').all()
+                        for inp in inputs:
+                            try:
+                                val = inp.input_value()
+                                if val == '2026':
+                                    inp.click()
+                                    page.wait_for_timeout(500)
+                                    inp.fill('2025')
+                                    inp.press('Enter')
+                                    periodo_selecionado = True
+                                    print("    Período 2025 digitado no input!")
+                                    page.wait_for_timeout(2000)
+                                    break
+                            except:
+                                continue
+                    except Exception as e:
+                        print(f"    Método 3 falhou: {e}")
+
+                if not periodo_selecionado:
+                    print("    AVISO: Não foi possível selecionar período 2025")
+                    print("    O relatório usará o período padrão (2026)")
+
+                # Captura screenshot após tentativa de seleção
+                screenshot_path = OUTPUT_DIR / f"debug_apos_periodo_{unidade['codigo']}.png"
+                page.screenshot(path=str(screenshot_path))
+
+                page.wait_for_timeout(1000)
 
                 page.wait_for_selector('button:has-text("CONSULTAR")', timeout=30000)
                 page.click('button:has-text("CONSULTAR")')
