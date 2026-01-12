@@ -114,6 +114,9 @@ def extrair_turno(turma_nome):
 def extrair_serie(turma_nome):
     """Extrai série do nome da turma para cálculo de retenção"""
     turma_lower = turma_nome.lower()
+    # Normaliza variações: remove espaço antes de º e garante espaço depois
+    import re
+    turma_normalizada = re.sub(r'\s*º\s*', 'º ', turma_lower)
     # Educação Infantil (ordem V->IV->III->II para evitar substring match)
     if "infantil v" in turma_lower or "infantil 5" in turma_lower:
         return "Infantil V"
@@ -123,25 +126,25 @@ def extrair_serie(turma_nome):
         return "Infantil III"
     elif "infantil ii" in turma_lower or "infantil 2" in turma_lower:
         return "Infantil II"
-    # Fundamental I
-    elif "1º ano" in turma_lower or "1° ano" in turma_lower:
+    # Fundamental I (usa turma_normalizada para variações)
+    elif "1º ano" in turma_normalizada or "1° ano" in turma_lower:
         return "1º ano"
-    elif "2º ano" in turma_lower or "2° ano" in turma_lower:
+    elif "2º ano" in turma_normalizada or "2° ano" in turma_lower:
         return "2º ano"
-    elif "3º ano" in turma_lower or "3° ano" in turma_lower:
+    elif "3º ano" in turma_normalizada or "3° ano" in turma_lower:
         return "3º ano"
-    elif "4º ano" in turma_lower or "4° ano" in turma_lower:
+    elif "4º ano" in turma_normalizada or "4° ano" in turma_lower:
         return "4º ano"
-    elif "5º ano" in turma_lower or "5° ano" in turma_lower:
+    elif "5º ano" in turma_normalizada or "5° ano" in turma_lower:
         return "5º ano"
     # Fundamental II
-    elif "6º ano" in turma_lower or "6° ano" in turma_lower:
+    elif "6º ano" in turma_normalizada or "6° ano" in turma_lower:
         return "6º ano"
-    elif "7º ano" in turma_lower or "7° ano" in turma_lower:
+    elif "7º ano" in turma_normalizada or "7° ano" in turma_lower:
         return "7º ano"
-    elif "8º ano" in turma_lower or "8° ano" in turma_lower:
+    elif "8º ano" in turma_normalizada or "8° ano" in turma_lower:
         return "8º ano"
-    elif "9º ano" in turma_lower or "9° ano" in turma_lower:
+    elif "9º ano" in turma_normalizada or "9° ano" in turma_lower:
         return "9º ano"
     # Ensino Médio
     elif "1ª série" in turma_lower or "1a série" in turma_lower:
