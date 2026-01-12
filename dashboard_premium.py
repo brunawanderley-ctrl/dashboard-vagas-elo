@@ -1834,8 +1834,11 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ===== RELATÓRIO DETALHADO DAS TURMAS =====
 st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Detalhamento por Turma</h4>", unsafe_allow_html=True)
 
+# Adiciona coluna Série para filtro
+df_relatorio['Série'] = df_relatorio['Turma'].apply(extrair_serie)
+
 # Filtros inline para o detalhamento
-col_filtro1, col_filtro2, col_filtro3, col_filtro4 = st.columns(4)
+col_filtro1, col_filtro2, col_filtro3, col_filtro4, col_filtro5 = st.columns(5)
 
 with col_filtro1:
     unidades_det = ["Todas"] + sorted(df_relatorio['Unidade'].apply(
@@ -1848,10 +1851,14 @@ with col_filtro2:
     filtro_segmento_det = st.selectbox("Filtrar Segmento", segmentos_det, key="filtro_segmento_det")
 
 with col_filtro3:
+    series_det = ["Todas"] + sorted(df_relatorio['Série'].unique().tolist())
+    filtro_serie_det = st.selectbox("Filtrar Série", series_det, key="filtro_serie_det")
+
+with col_filtro4:
     turnos_det = ["Todos"] + sorted(df_relatorio['Turno'].unique().tolist())
     filtro_turno_det = st.selectbox("Filtrar Turno", turnos_det, key="filtro_turno_det")
 
-with col_filtro4:
+with col_filtro5:
     ordenacao = st.selectbox("Ordenar por", ["Ocupação (maior)", "Ocupação (menor)", "Vagas (maior)", "Disponíveis (maior)"], key="ordenacao_det")
 
 # Aplica filtros do detalhamento
@@ -1868,6 +1875,9 @@ if filtro_unidade_det != "Todas":
 
 if filtro_segmento_det != "Todos":
     df_det = df_det[df_det['Segmento'] == filtro_segmento_det]
+
+if filtro_serie_det != "Todas":
+    df_det = df_det[df_det['Série'] == filtro_serie_det]
 
 if filtro_turno_det != "Todos":
     df_det = df_det[df_det['Turno'] == filtro_turno_det]
