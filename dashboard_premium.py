@@ -1247,9 +1247,9 @@ if resumo_2025_path.exists():
     html_seg += "<table style='width:100%; font-size:11px; border-collapse:collapse;'>"
     html_seg += "<tr style='background:linear-gradient(90deg, #667eea, #764ba2); color:white; position:sticky; top:0;'>"
     html_seg += "<th style='padding:8px;'>Unidade</th><th>Segmento</th>"
-    html_seg += "<th>Nov. 2025</th><th>Nov. 2026</th><th>Var.</th>"
-    html_seg += "<th>Vet. 2025</th><th>Vet. 2026</th><th>Var.</th>"
-    html_seg += "<th>Total 2025</th><th>Total 2026</th><th>Var.</th></tr>"
+    html_seg += "<th>Novatos 25</th><th>Novatos 26</th><th>Var.</th>"
+    html_seg += "<th>Veteranos 25</th><th>Veteranos 26</th><th>Var.</th>"
+    html_seg += "<th>Total 25</th><th>Total 26</th><th>Var.</th></tr>"
 
     for _, r in df_comp.iterrows():
         cor_nov = "#10b981" if r["Var_Nov"] >= 0 else "#ef4444"
