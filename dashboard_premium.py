@@ -6,6 +6,8 @@ import json
 import sqlite3
 import subprocess
 import os
+import base64
+import io
 from pathlib import Path
 from datetime import datetime
 
@@ -404,6 +406,77 @@ def criar_df_resumo(resumo_data):
             })
     return pd.DataFrame(rows)
 
+def gerar_relatorio_pdf(resumo, df_perf, df_turmas, total):
+    """Gera relatório PDF executivo em formato HTML para impressão"""
+    data_hoje = datetime.now().strftime('%d/%m/%Y às %H:%M')
+    data_extracao = resumo['data_extracao'][:16].replace('T', ' ')
+    ocupacao_geral = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vagas'] > 0 else 0
+    ating_meta = round(total['matriculados'] / 4200 * 100, 1)
+    ating_novatos = round(total['novatos'] / 1000 * 100, 1)
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Executivo - Colégio Elo</title>
+    <style>@page{{size:A4;margin:1.5cm}}body{{font-family:'Segoe UI',Arial,sans-serif;color:#1e3a5f;line-height:1.4;font-size:11px}}
+    .header{{text-align:center;border-bottom:3px solid #667eea;padding-bottom:15px;margin-bottom:20px}}
+    .header h1{{color:#667eea;margin:0;font-size:24px}}.header p{{color:#64748b;margin:5px 0 0 0;font-size:12px}}
+    .kpi-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}}
+    .kpi-box{{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);padding:12px;border-radius:8px;text-align:center;border-left:4px solid #667eea}}
+    .kpi-box.green{{border-left-color:#10b981}}.kpi-box.yellow{{border-left-color:#f59e0b}}.kpi-box.red{{border-left-color:#ef4444}}
+    .kpi-label{{color:#64748b;font-size:9px;text-transform:uppercase}}.kpi-value{{color:#1e3a5f;font-size:22px;font-weight:700;margin:5px 0}}
+    .kpi-detail{{color:#94a3b8;font-size:9px}}.section{{margin-bottom:20px}}.section h2{{color:#667eea;font-size:14px;border-bottom:2px solid #e2e8f0;padding-bottom:5px;margin-bottom:10px}}
+    table{{width:100%;border-collapse:collapse;font-size:10px}}th{{background:#667eea;color:white;padding:8px 5px;text-align:left}}
+    td{{padding:6px 5px;border-bottom:1px solid #e2e8f0}}tr:nth-child(even){{background:#f8fafc}}
+    .status-ok{{color:#10b981;font-weight:600}}.status-warn{{color:#f59e0b;font-weight:600}}.status-crit{{color:#ef4444;font-weight:600}}
+    .unidade-grid{{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}}
+    .unidade-box{{background:#f8fafc;padding:10px;border-radius:8px;text-align:center}}
+    .unidade-nome{{font-weight:600;color:#1e3a5f;font-size:11px}}.unidade-ating{{font-size:18px;font-weight:700;margin:5px 0}}
+    .footer{{text-align:center;color:#94a3b8;font-size:9px;margin-top:20px;padding-top:10px;border-top:1px solid #e2e8f0}}
+    @media print{{body{{-webkit-print-color-adjust:exact;print-color-adjust:exact}}}}</style></head><body>
+    <div class="header"><h1>Relatório Executivo - Colégio Elo</h1><p>Período: {resumo['periodo']} | Gerado em: {data_hoje} | Dados de: {data_extracao}</p></div>
+    <div class="kpi-grid">
+    <div class="kpi-box {'green' if ocupacao_geral >= 80 else 'yellow' if ocupacao_geral >= 60 else 'red'}"><div class="kpi-label">Ocupação Geral</div><div class="kpi-value">{ocupacao_geral}%</div><div class="kpi-detail">{total['matriculados']:,} / {total['vagas']:,} vagas</div></div>
+    <div class="kpi-box {'green' if ating_meta >= 100 else 'yellow' if ating_meta >= 80 else 'red'}"><div class="kpi-label">Meta Matrículas (4.200)</div><div class="kpi-value">{ating_meta}%</div><div class="kpi-detail">{total['matriculados']:,} alunos ({total['matriculados'] - 4200:+,})</div></div>
+    <div class="kpi-box {'green' if ating_novatos >= 100 else 'yellow' if ating_novatos >= 80 else 'red'}"><div class="kpi-label">Meta Novatos (1.000)</div><div class="kpi-value">{ating_novatos}%</div><div class="kpi-detail">{total['novatos']:,} novatos ({total['novatos'] - 1000:+,})</div></div>
+    </div>
+    <div class="kpi-grid">
+    <div class="kpi-box"><div class="kpi-label">Total Matriculados</div><div class="kpi-value">{total['matriculados']:,}</div></div>
+    <div class="kpi-box"><div class="kpi-label">Veteranos</div><div class="kpi-value">{total['veteranos']:,}</div></div>
+    <div class="kpi-box"><div class="kpi-label">Vagas Disponíveis</div><div class="kpi-value">{total['disponiveis']:,}</div></div>
+    </div>
+    <div class="section"><h2>Atingimento por Unidade</h2><div class="unidade-grid">"""
+
+    for _, row in df_perf.iterrows():
+        cor = '#10b981' if row['Gap'] >= 0 else '#f59e0b' if row['Atingimento'] >= 80 else '#ef4444'
+        sinal = '+' if row['Gap'] >= 0 else ''
+        sinal_nov = '+' if row['Gap_Novatos'] >= 0 else ''
+        html += f"""<div class="unidade-box" style="border-left:4px solid {cor};"><div class="unidade-nome">{row['Nome_curto']}</div><div class="unidade-ating" style="color:{cor};">{row['Atingimento']:.1f}%</div><div style="font-size:9px;color:#64748b;">Matr: {int(row['Matriculados'])} / {int(row['Meta'])} ({sinal}{int(row['Gap'])})<br>Nov: {int(row['Novatos'])} / {int(row['Meta_Novatos'])} ({sinal_nov}{int(row['Gap_Novatos'])})</div></div>"""
+
+    html += """</div></div><div class="section"><h2>Performance por Unidade</h2><table><thead><tr><th>Unidade</th><th>Vagas</th><th>Matr.</th><th>Ocupação</th><th>Ating.</th><th>Novatos</th><th>Meta Nov.</th><th>Vet.</th><th>Disp.</th></tr></thead><tbody>"""
+
+    for _, row in df_perf.iterrows():
+        status_class = 'status-ok' if row['Atingimento'] >= 100 else 'status-warn' if row['Atingimento'] >= 80 else 'status-crit'
+        html += f"""<tr><td><strong>{row['Nome_curto']}</strong></td><td>{int(row['Vagas'])}</td><td>{int(row['Matriculados'])}</td><td>{row['Ocupacao']:.1f}%</td><td class="{status_class}">{row['Atingimento']:.1f}%</td><td>{int(row['Novatos'])}</td><td>{int(row['Meta_Novatos'])}</td><td>{int(row['Veteranos'])}</td><td>{int(row['Vagas']) - int(row['Matriculados'])}</td></tr>"""
+
+    html += """</tbody></table></div>"""
+
+    turmas_lotadas = df_turmas[df_turmas['Ocupação %'] >= 95].head(10)
+    if len(turmas_lotadas) > 0:
+        html += """<div class="section"><h2>Turmas Lotadas (≥95%)</h2><table><thead><tr><th>Unidade</th><th>Turma</th><th>Ocupação</th><th>Matr.</th><th>Vagas</th></tr></thead><tbody>"""
+        for _, t in turmas_lotadas.iterrows():
+            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
+            html += f"""<tr><td>{unidade_curta}</td><td>{t['Turma']}</td><td class="status-crit">{t['Ocupação %']:.0f}%</td><td>{int(t['Matriculados'])}</td><td>{int(t['Vagas'])}</td></tr>"""
+        html += """</tbody></table></div>"""
+
+    turmas_vazias = df_turmas[df_turmas['Ocupação %'] < 50].head(10)
+    if len(turmas_vazias) > 0:
+        html += """<div class="section"><h2>Turmas com Oportunidade (<50%)</h2><table><thead><tr><th>Unidade</th><th>Turma</th><th>Ocupação</th><th>Disponíveis</th></tr></thead><tbody>"""
+        for _, t in turmas_vazias.iterrows():
+            unidade_curta = t['Unidade'].split('(')[1].replace(')', '') if '(' in t['Unidade'] else t['Unidade']
+            html += f"""<tr><td>{unidade_curta}</td><td>{t['Turma']}</td><td class="status-warn">{t['Ocupação %']:.0f}%</td><td>{int(t['Disponiveis'])}</td></tr>"""
+        html += """</tbody></table></div>"""
+
+    html += """<div class="footer"><p>Colégio Elo - Relatório Executivo Confidencial</p><p>Para imprimir: Ctrl+P (ou Cmd+P) → Salvar como PDF</p></div></body></html>"""
+    return html.replace(",", ".")
+
 try:
     resumo, vagas = carregar_dados()
     df_hist_unidades, df_hist_total, df_hist_segmento, num_extracoes = carregar_historico()
@@ -712,6 +785,13 @@ METAS_POR_CODIGO = {
     "03-JG": 750,    # Janga (Paulista)
     "04-CDR": 850,   # Cordeiro
 }
+# Metas de NOVATOS por unidade (proporcional)
+METAS_NOVATOS = {
+    "01-BV": 305,    # Boa Viagem
+    "02-CD": 314,    # Candeias (Jaboatão)
+    "03-JG": 179,    # Janga (Paulista)
+    "04-CDR": 202,   # Cordeiro
+}
 META_NOVATOS = 1000
 META_TOTAL = 1280 + 1320 + 750 + 850  # 4200
 
@@ -736,10 +816,27 @@ def get_meta(unidade_nome):
         return 850
     return 0
 
+def get_meta_novatos(unidade_nome):
+    # Meta de novatos por unidade
+    if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
+        return 305
+    elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
+        return 314
+    elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
+        return 179
+    elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
+        return 202
+    return 0
+
 df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(get_meta)
 df_perf_unidade['Gap'] = df_perf_unidade['Matriculados'] - df_perf_unidade['Meta']
 df_perf_unidade['Atingimento'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Meta'] * 100).round(1)
 df_perf_unidade['Ocupacao'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Vagas'] * 100).round(1)
+
+# Metas de novatos por unidade
+df_perf_unidade['Meta_Novatos'] = df_perf_unidade['Unidade'].apply(get_meta_novatos)
+df_perf_unidade['Gap_Novatos'] = df_perf_unidade['Novatos'] - df_perf_unidade['Meta_Novatos']
+df_perf_unidade['Ating_Novatos'] = (df_perf_unidade['Novatos'] / df_perf_unidade['Meta_Novatos'] * 100).round(1)
 
 # Extrai nome curto
 df_perf_unidade['Nome_curto'] = df_perf_unidade['Unidade'].apply(
@@ -800,12 +897,15 @@ for i, (_, row) in enumerate(df_perf_unidade.iterrows()):
     with cols_unidades[i % 4]:
         cor = '#10b981' if row['Gap'] >= 0 else '#f59e0b' if row['Atingimento'] >= 80 else '#ef4444'
         sinal = '+' if row['Gap'] >= 0 else ''
+        cor_nov = '#10b981' if row['Gap_Novatos'] >= 0 else '#f59e0b' if row['Ating_Novatos'] >= 80 else '#ef4444'
+        sinal_nov = '+' if row['Gap_Novatos'] >= 0 else ''
         st.markdown(f"""
         <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1rem; border-radius: 12px; border-left: 4px solid {cor}; margin-bottom: 0.5rem;'>
             <p style='color: #ffffff; font-size: 1rem; font-weight: 600; margin: 0;'>{row['Nome_curto']}</p>
             <p style='color: {cor}; font-size: 1.5rem; font-weight: 700; margin: 0.2rem 0;'>{row['Atingimento']:.1f}%</p>
-            <p style='color: #94a3b8; font-size: 0.7rem; margin: 0;'>{int(row['Matriculados'])} / {int(row['Meta'])} ({sinal}{int(row['Gap'])})</p>
-            <p style='color: #64748b; font-size: 0.65rem; margin: 0.2rem 0 0 0;'>Novatos: {int(row['Novatos'])} | Vet: {int(row['Veteranos'])}</p>
+            <p style='color: #94a3b8; font-size: 0.7rem; margin: 0;'>Matr: {int(row['Matriculados'])} / {int(row['Meta'])} ({sinal}{int(row['Gap'])})</p>
+            <p style='color: {cor_nov}; font-size: 0.7rem; margin: 0.2rem 0 0 0;'>Novatos: {int(row['Novatos'])} / {int(row['Meta_Novatos'])} ({sinal_nov}{int(row['Gap_Novatos'])})</p>
+            <p style='color: #64748b; font-size: 0.65rem; margin: 0.2rem 0 0 0;'>Vet: {int(row['Veteranos'])} | Ating. Nov: {row['Ating_Novatos']:.0f}%</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1435,7 +1535,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # Download do relatório filtrado
 csv_filtrado = df_relatorio.to_csv(index=False).encode('utf-8')
-col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 2])
+col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 1])
 with col_dl1:
     st.download_button(
         label="📥 Exportar CSV",
@@ -1450,6 +1550,16 @@ with col_dl2:
         data=excel_data,
         file_name=f"relatorio_executivo_{resumo['data_extracao'][:10]}.csv",
         mime="text/csv",
+    )
+with col_dl3:
+    # Gera relatório PDF (HTML para impressão)
+    html_pdf = gerar_relatorio_pdf(resumo, df_perf_unidade, df_relatorio, total)
+    st.download_button(
+        label="📄 Relatório PDF",
+        data=html_pdf.encode('utf-8'),
+        file_name=f"relatorio_executivo_{resumo['data_extracao'][:10]}.html",
+        mime="text/html",
+        help="Baixe e abra no navegador. Use Ctrl+P para salvar como PDF."
     )
 
 # Footer
