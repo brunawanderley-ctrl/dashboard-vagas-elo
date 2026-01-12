@@ -1627,27 +1627,82 @@ df_exibir = df_det[colunas_exibir].copy()
 df_exibir['Unidade'] = df_exibir['Unidade'].apply(lambda x: x.split('(')[1].replace(')', '') if '(' in x else x)
 df_exibir.columns = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matr.', 'Ocup.', 'Nov.', 'Vet.', 'Disp.', 'Pré']
 
-# Exibe tabela com estilização profissional
-st.dataframe(
-    df_exibir,
-    use_container_width=True,
-    hide_index=True,
-    height=450,
-    column_config={
-        "Ocup.": st.column_config.ProgressColumn(
-            "Ocupação",
-            format="%.1f%%",
-            min_value=0,
-            max_value=100,
-        ),
-        "Vagas": st.column_config.NumberColumn("Vagas", format="%d"),
-        "Matr.": st.column_config.NumberColumn("Matr.", format="%d"),
-        "Nov.": st.column_config.NumberColumn("Novatos", format="%d"),
-        "Vet.": st.column_config.NumberColumn("Vet.", format="%d"),
-        "Disp.": st.column_config.NumberColumn("Disp.", format="%d"),
-        "Pré": st.column_config.NumberColumn("Pré-Matr.", format="%d"),
-    }
-)
+# Função para cor da barra de ocupação (mesma escala do termômetro)
+def cor_barra_ocupacao(ocupacao):
+    if ocupacao >= 100: return '#065f46'   # Excelente
+    elif ocupacao >= 95: return '#16a34a'  # Ótima
+    elif ocupacao >= 90: return '#22c55e'  # Quente
+    elif ocupacao >= 80: return '#4ade80'  # Morna Alta
+    elif ocupacao >= 70: return '#a3e635'  # Morna
+    elif ocupacao >= 60: return '#fbbf24'  # Fria
+    elif ocupacao >= 50: return '#f97316'  # Muito Fria
+    elif ocupacao >= 38: return '#ea580c'  # Crítica
+    else: return '#dc2626'                 # Congelada
+
+# Cria HTML da tabela com barras coloridas
+def criar_barra_html(ocupacao):
+    cor = cor_barra_ocupacao(ocupacao)
+    largura = min(ocupacao, 100)
+    return f'''<div style="display: flex; align-items: center; gap: 8px;">
+        <div style="flex: 1; background: #2d2d44; border-radius: 4px; height: 18px; overflow: hidden;">
+            <div style="width: {largura}%; height: 100%; background: linear-gradient(90deg, {cor}, {cor}cc); border-radius: 4px;"></div>
+        </div>
+        <span style="min-width: 45px; text-align: right; font-size: 12px;">{ocupacao:.1f}%</span>
+    </div>'''
+
+# Gera HTML da tabela
+html_rows = []
+for _, row in df_exibir.iterrows():
+    ocupacao_val = row['Ocup.']
+    barra_html = criar_barra_html(ocupacao_val)
+    html_rows.append(f'''
+    <tr>
+        <td>{row['Unidade']}</td>
+        <td>{row['Segmento']}</td>
+        <td>{row['Turma']}</td>
+        <td>{row['Turno']}</td>
+        <td style="text-align: center;">{int(row['Vagas'])}</td>
+        <td style="text-align: center;">{int(row['Matr.'])}</td>
+        <td style="min-width: 150px;">{barra_html}</td>
+        <td style="text-align: center;">{int(row['Nov.'])}</td>
+        <td style="text-align: center;">{int(row['Vet.'])}</td>
+        <td style="text-align: center;">{int(row['Disp.'])}</td>
+        <td style="text-align: center;">{int(row['Pré'])}</td>
+    </tr>
+    ''')
+
+html_table = f'''
+<div style="max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #3d3d5c;">
+<table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+    <thead>
+        <tr style="background: linear-gradient(90deg, #667eea, #764ba2); color: white; position: sticky; top: 0;">
+            <th style="padding: 10px 8px; text-align: left;">Unidade</th>
+            <th style="padding: 10px 8px; text-align: left;">Segmento</th>
+            <th style="padding: 10px 8px; text-align: left;">Turma</th>
+            <th style="padding: 10px 8px; text-align: left;">Turno</th>
+            <th style="padding: 10px 8px; text-align: center;">Vagas</th>
+            <th style="padding: 10px 8px; text-align: center;">Matr.</th>
+            <th style="padding: 10px 8px; text-align: left; min-width: 150px;">Ocupação</th>
+            <th style="padding: 10px 8px; text-align: center;">Nov.</th>
+            <th style="padding: 10px 8px; text-align: center;">Vet.</th>
+            <th style="padding: 10px 8px; text-align: center;">Disp.</th>
+            <th style="padding: 10px 8px; text-align: center;">Pré</th>
+        </tr>
+    </thead>
+    <tbody>
+        {"".join(html_rows)}
+    </tbody>
+</table>
+</div>
+<style>
+    table tbody tr:nth-child(odd) {{ background: #1a1a2e; }}
+    table tbody tr:nth-child(even) {{ background: #16162a; }}
+    table tbody tr:hover {{ background: #2d2d44; }}
+    table td {{ padding: 8px; color: #e0e0ff; border-bottom: 1px solid #2d2d44; }}
+</style>
+'''
+
+st.markdown(html_table, unsafe_allow_html=True)
 
 st.caption(f"Exibindo {len(df_exibir)} turmas • Filtros aplicados: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
 
