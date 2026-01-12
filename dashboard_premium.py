@@ -811,27 +811,27 @@ df_perf_unidade = df_resumo_all.groupby('Unidade').agg({
 
 # Adiciona metas e calcula gaps
 def get_meta(unidade_nome):
-    # Usa código da unidade para precisão
+    # Usa código da unidade para precisão (valores de METAS_POR_CODIGO)
     if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
-        return 1280
+        return 1250
     elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
-        return 1270
+        return 1200
     elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
-        return 750
+        return 850
     elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
         return 800
     return 0
 
 def get_meta_novatos(unidade_nome):
-    # Meta de novatos por unidade
+    # Meta de novatos por unidade (valores de METAS_NOVATOS)
     if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
-        return 305
+        return 285
     elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
-        return 314
+        return 273
     elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
-        return 179
+        return 227
     elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
-        return 202
+        return 215
     return 0
 
 df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(get_meta)
@@ -887,9 +887,9 @@ with col_meta3:
     cor_retencao = '#10b981' if taxa_retencao_geral >= 70 else '#f59e0b' if taxa_retencao_geral >= 50 else '#ef4444'
     st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_retencao};'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Retenção de Veteranos</p>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>% Veteranos</p>
         <p style='color: {cor_retencao}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{taxa_retencao_geral:.1f}%</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{total['veteranos']:,} veteranos renovaram</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{total['veteranos']:,} rematriculados</p>
     </div>
     """.replace(",", "."), unsafe_allow_html=True)
 
@@ -1436,7 +1436,7 @@ if dados_2025_path.exists() and dados_2026_path.exists():
             df_ret_unidade["Retenção %"] = (df_ret_unidade["Veteranos 2026"] / df_ret_unidade["Alunos 2025"] * 100).round(1)
 
             html_ret = "<table style='width:100%; font-size:12px; border-collapse:collapse;'>"
-            html_ret += "<tr style='background:#10b981; color:white;'><th style='padding:8px;'>Unidade</th><th>Base 2025</th><th>Retidos 2026</th><th>Retenção</th></tr>"
+            html_ret += "<tr style='background:#10b981; color:white;'><th style='padding:8px;'>Unidade</th><th>Base 2025</th><th>Rematriculados 2026</th><th>Retenção</th></tr>"
             for _, r in df_ret_unidade.iterrows():
                 cor = "#10b981" if r["Retenção %"] >= 80 else "#f59e0b" if r["Retenção %"] >= 60 else "#ef4444"
                 html_ret += f"<tr style='background:#1a1a2e;'><td style='padding:6px; color:#e0e0ff;'>{r['Unidade']}</td>"
@@ -1461,7 +1461,7 @@ if dados_2025_path.exists() and dados_2026_path.exists():
             df_evasao = df_retencao[df_retencao["Alunos 2025"] >= 5].sort_values("Retenção %").head(8)
             if len(df_evasao) > 0:
                 html_eva = "<table style='width:100%; font-size:11px; border-collapse:collapse;'>"
-                html_eva += "<tr style='background:#ef4444; color:white;'><th style='padding:6px;'>Unidade</th><th>Série</th><th>Base</th><th>Retidos</th><th>Evasão</th></tr>"
+                html_eva += "<tr style='background:#ef4444; color:white;'><th style='padding:6px;'>Unidade</th><th>Série</th><th>Base</th><th>Rematriculados</th><th>Evasão</th></tr>"
                 for _, r in df_evasao.iterrows():
                     evasao = 100 - r["Retenção %"]
                     cor = "#ef4444" if evasao >= 40 else "#f59e0b" if evasao >= 20 else "#10b981"
@@ -1868,7 +1868,7 @@ with col_kpi1:
     )
 with col_kpi2:
     st.metric(
-        "Taxa de Retenção",
+        "% Veteranos",
         f"{taxa_retencao:.1f}%",
         help="Veteranos / Total matriculados"
     )
@@ -1943,7 +1943,7 @@ df_ranking = df_relatorio.groupby('Unidade').agg({
 }).reset_index()
 
 df_ranking['Ocupação'] = (df_ranking['Matriculados'] / df_ranking['Vagas'] * 100).round(1)
-df_ranking['Retenção'] = (df_ranking['Veteranos'] / df_ranking['Matriculados'] * 100).round(1)
+df_ranking['% Veteranos'] = (df_ranking['Veteranos'] / df_ranking['Matriculados'] * 100).round(1)
 df_ranking['Captação'] = (df_ranking['Novatos'] / df_ranking['Vagas'] * 100).round(1)
 df_ranking = df_ranking.sort_values('Ocupação', ascending=False)
 
@@ -1953,7 +1953,7 @@ df_ranking['Unidade'] = df_ranking['Unidade'].apply(
 )
 
 st.dataframe(
-    df_ranking[['Unidade', 'Vagas', 'Matriculados', 'Ocupação', 'Retenção', 'Captação', 'Disponiveis']],
+    df_ranking[['Unidade', 'Vagas', 'Matriculados', 'Ocupação', '% Veteranos', 'Captação', 'Disponiveis']],
     use_container_width=True,
     hide_index=True,
     column_config={
@@ -1963,8 +1963,8 @@ st.dataframe(
             min_value=0,
             max_value=100,
         ),
-        "Retenção": st.column_config.ProgressColumn(
-            "Retenção %",
+        "% Veteranos": st.column_config.ProgressColumn(
+            "% Veteranos",
             format="%.1f%%",
             min_value=0,
             max_value=100,
