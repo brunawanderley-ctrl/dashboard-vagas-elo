@@ -1646,7 +1646,15 @@ st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Painel Executivo
 
 # Prepara DataFrame com todas as informações
 df_relatorio = df_turmas_filtrado.copy()
-df_relatorio['Ocupação %'] = (df_relatorio['Matriculados'] / df_relatorio['Vagas'] * 100).round(1)
+
+# Calcula ocupação com tratamento para divisão por zero
+df_relatorio['Ocupação %'] = df_relatorio.apply(
+    lambda row: round((row['Matriculados'] / row['Vagas'] * 100), 1) if row['Vagas'] > 0 else 0.0,
+    axis=1
+)
+
+# Garante que não há valores NaN ou infinitos
+df_relatorio['Ocupação %'] = df_relatorio['Ocupação %'].fillna(0).replace([float('inf'), float('-inf')], 0)
 
 # Filtra se uma turma específica foi selecionada
 if turma_selecionada != "Todas":
@@ -1815,6 +1823,12 @@ with col_filtro4:
 
 # Aplica filtros do detalhamento
 df_det = df_relatorio.copy()
+
+# Garante que todas as colunas numéricas não têm NaN
+colunas_numericas = ['Vagas', 'Matriculados', 'Novatos', 'Veteranos', 'Disponiveis', 'Pre-matriculados', 'Ocupação %']
+for col in colunas_numericas:
+    if col in df_det.columns:
+        df_det[col] = pd.to_numeric(df_det[col], errors='coerce').fillna(0)
 
 if filtro_unidade_det != "Todas":
     df_det = df_det[df_det['Unidade'].str.contains(filtro_unidade_det, case=False)]
