@@ -1306,6 +1306,188 @@ else:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ===== RETENÇÃO REAL POR SÉRIE =====
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📈 Retenção Real por Série (2025 → 2026)</h3>", unsafe_allow_html=True)
+st.caption("Retenção = alunos da série anterior (2025) que avançaram e permaneceram na escola (2026)")
+
+# Carrega dados detalhados de 2025 e 2026
+dados_2025_path = Path(__file__).parent / "output" / "dados_2025.json"
+dados_2026_path = Path(__file__).parent / "output" / "vagas_ultimo.json"
+
+if dados_2025_path.exists() and dados_2026_path.exists():
+    with open(dados_2025_path, "r", encoding="utf-8") as f:
+        dados_2025_full = json.load(f)
+    with open(dados_2026_path, "r", encoding="utf-8") as f:
+        dados_2026_full = json.load(f)
+
+    # Função para extrair série do nome da turma
+    def extrair_serie(turma_nome):
+        turma_lower = turma_nome.lower()
+        # Educação Infantil
+        if "infantil ii" in turma_lower or "infantil 2" in turma_lower:
+            return "Infantil II"
+        elif "infantil iii" in turma_lower or "infantil 3" in turma_lower:
+            return "Infantil III"
+        elif "infantil iv" in turma_lower or "infantil 4" in turma_lower:
+            return "Infantil IV"
+        elif "infantil v" in turma_lower or "infantil 5" in turma_lower:
+            return "Infantil V"
+        # Fundamental I
+        elif "1º ano" in turma_lower or "1° ano" in turma_lower or "primeiro ano" in turma_lower:
+            return "1º ano"
+        elif "2º ano" in turma_lower or "2° ano" in turma_lower or "segundo ano" in turma_lower:
+            return "2º ano"
+        elif "3º ano" in turma_lower or "3° ano" in turma_lower or "terceiro ano" in turma_lower:
+            return "3º ano"
+        elif "4º ano" in turma_lower or "4° ano" in turma_lower or "quarto ano" in turma_lower:
+            return "4º ano"
+        elif "5º ano" in turma_lower or "5° ano" in turma_lower or "quinto ano" in turma_lower:
+            return "5º ano"
+        # Fundamental II
+        elif "6º ano" in turma_lower or "6° ano" in turma_lower or "sexto ano" in turma_lower:
+            return "6º ano"
+        elif "7º ano" in turma_lower or "7° ano" in turma_lower or "sétimo ano" in turma_lower:
+            return "7º ano"
+        elif "8º ano" in turma_lower or "8° ano" in turma_lower or "oitavo ano" in turma_lower:
+            return "8º ano"
+        elif "9º ano" in turma_lower or "9° ano" in turma_lower or "nono ano" in turma_lower:
+            return "9º ano"
+        # Ensino Médio
+        elif "1ª série" in turma_lower or "1a série" in turma_lower or "primeira série" in turma_lower:
+            return "1ª série EM"
+        elif "2ª série" in turma_lower or "2a série" in turma_lower or "segunda série" in turma_lower:
+            return "2ª série EM"
+        elif "3ª série" in turma_lower or "3a série" in turma_lower or "terceira série" in turma_lower:
+            return "3ª série EM"
+        return None
+
+    # Mapeamento de progressão: série atual -> série anterior
+    PROGRESSAO = {
+        "Infantil III": "Infantil II",
+        "Infantil IV": "Infantil III",
+        "Infantil V": "Infantil IV",
+        "1º ano": "Infantil V",
+        "2º ano": "1º ano",
+        "3º ano": "2º ano",
+        "4º ano": "3º ano",
+        "5º ano": "4º ano",
+        "6º ano": "5º ano",
+        "7º ano": "6º ano",
+        "8º ano": "7º ano",
+        "9º ano": "8º ano",
+        "1ª série EM": "9º ano",
+        "2ª série EM": "1ª série EM",
+        "3ª série EM": "2ª série EM",
+    }
+
+    # Agrupa dados por unidade e série
+    def agrupar_por_serie(dados, ano):
+        resultado = {}
+        for unidade in dados.get("unidades", []):
+            codigo = unidade["codigo"]
+            if codigo not in resultado:
+                resultado[codigo] = {}
+            for turma in unidade.get("turmas", []):
+                serie = extrair_serie(turma.get("turma", ""))
+                if serie:
+                    if serie not in resultado[codigo]:
+                        resultado[codigo][serie] = {"matriculados": 0, "veteranos": 0, "novatos": 0}
+                    resultado[codigo][serie]["matriculados"] += turma.get("matriculados", 0)
+                    resultado[codigo][serie]["veteranos"] += turma.get("veteranos", 0)
+                    resultado[codigo][serie]["novatos"] += turma.get("novatos", 0)
+        return resultado
+
+    dados_2025_serie = agrupar_por_serie(dados_2025_full, "2025")
+    dados_2026_serie = agrupar_por_serie(dados_2026_full, "2026")
+
+    # Calcula retenção real por série
+    retencao_data = []
+    for codigo_unidade in dados_2026_serie.keys():
+        nome_unidade = codigo_unidade.split("-")[1] if "-" in codigo_unidade else codigo_unidade
+        for serie_atual, serie_anterior in PROGRESSAO.items():
+            # Veteranos na série atual (2026) vieram da série anterior (2025)
+            vet_2026 = dados_2026_serie.get(codigo_unidade, {}).get(serie_atual, {}).get("veteranos", 0)
+            # Total de alunos na série anterior em 2025
+            total_2025 = dados_2025_serie.get(codigo_unidade, {}).get(serie_anterior, {}).get("matriculados", 0)
+
+            if total_2025 > 0:
+                retencao = (vet_2026 / total_2025) * 100
+                retencao_data.append({
+                    "Unidade": nome_unidade,
+                    "Série 2026": serie_atual,
+                    "Base 2025": serie_anterior,
+                    "Alunos 2025": total_2025,
+                    "Veteranos 2026": vet_2026,
+                    "Retenção %": round(retencao, 1)
+                })
+
+    if retencao_data:
+        df_retencao = pd.DataFrame(retencao_data)
+
+        # Tabela resumo por unidade
+        col_ret1, col_ret2 = st.columns(2)
+
+        with col_ret1:
+            st.markdown("<h4 style='color: #e2e8f0;'>Retenção por Unidade</h4>", unsafe_allow_html=True)
+            df_ret_unidade = df_retencao.groupby("Unidade").agg({
+                "Alunos 2025": "sum",
+                "Veteranos 2026": "sum"
+            }).reset_index()
+            df_ret_unidade["Retenção %"] = (df_ret_unidade["Veteranos 2026"] / df_ret_unidade["Alunos 2025"] * 100).round(1)
+
+            html_ret = "<table style='width:100%; font-size:12px; border-collapse:collapse;'>"
+            html_ret += "<tr style='background:#10b981; color:white;'><th style='padding:8px;'>Unidade</th><th>Base 2025</th><th>Retidos 2026</th><th>Retenção</th></tr>"
+            for _, r in df_ret_unidade.iterrows():
+                cor = "#10b981" if r["Retenção %"] >= 80 else "#f59e0b" if r["Retenção %"] >= 60 else "#ef4444"
+                html_ret += f"<tr style='background:#1a1a2e;'><td style='padding:6px; color:#e0e0ff;'>{r['Unidade']}</td>"
+                html_ret += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Alunos 2025'])}</td>"
+                html_ret += f"<td style='text-align:center; color:#e0e0ff;'>{int(r['Veteranos 2026'])}</td>"
+                html_ret += f"<td style='text-align:center; color:{cor}; font-weight:600;'>{r['Retenção %']:.1f}%</td></tr>"
+            # Total
+            total_base = df_ret_unidade["Alunos 2025"].sum()
+            total_ret = df_ret_unidade["Veteranos 2026"].sum()
+            ret_total = (total_ret / total_base * 100) if total_base > 0 else 0
+            cor_total = "#10b981" if ret_total >= 80 else "#f59e0b" if ret_total >= 60 else "#ef4444"
+            html_ret += f"<tr style='background:#2d2d44; font-weight:700;'><td style='padding:8px; color:#ffffff;'>TOTAL</td>"
+            html_ret += f"<td style='text-align:center; color:#ffffff;'>{int(total_base)}</td>"
+            html_ret += f"<td style='text-align:center; color:#ffffff;'>{int(total_ret)}</td>"
+            html_ret += f"<td style='text-align:center; color:{cor_total};'>{ret_total:.1f}%</td></tr>"
+            html_ret += "</table>"
+            st.markdown(html_ret, unsafe_allow_html=True)
+
+        with col_ret2:
+            st.markdown("<h4 style='color: #e2e8f0;'>Séries com Maior Evasão</h4>", unsafe_allow_html=True)
+            # Séries com menor retenção (maior evasão)
+            df_evasao = df_retencao[df_retencao["Alunos 2025"] >= 5].sort_values("Retenção %").head(8)
+            if len(df_evasao) > 0:
+                html_eva = "<table style='width:100%; font-size:11px; border-collapse:collapse;'>"
+                html_eva += "<tr style='background:#ef4444; color:white;'><th style='padding:6px;'>Unidade</th><th>Série</th><th>Base</th><th>Retidos</th><th>Evasão</th></tr>"
+                for _, r in df_evasao.iterrows():
+                    evasao = 100 - r["Retenção %"]
+                    cor = "#ef4444" if evasao >= 40 else "#f59e0b" if evasao >= 20 else "#10b981"
+                    html_eva += f"<tr style='background:#1a1a2e;'><td style='padding:5px; color:#e0e0ff;'>{r['Unidade']}</td>"
+                    html_eva += f"<td style='color:#94a3b8;'>{r['Série 2026']}</td>"
+                    html_eva += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Alunos 2025'])}</td>"
+                    html_eva += f"<td style='text-align:center; color:#e0e0ff;'>{int(r['Veteranos 2026'])}</td>"
+                    html_eva += f"<td style='text-align:center; color:{cor}; font-weight:600;'>{evasao:.1f}%</td></tr>"
+                html_eva += "</table>"
+                st.markdown(html_eva, unsafe_allow_html=True)
+                st.caption("Mostrando séries com base mínima de 5 alunos")
+
+        # Detalhamento expandível
+        with st.expander("📋 Ver detalhamento completo por série"):
+            st.dataframe(
+                df_retencao.sort_values(["Unidade", "Série 2026"]),
+                use_container_width=True,
+                hide_index=True
+            )
+    else:
+        st.warning("Não foi possível calcular a retenção. Verifique os dados de 2025 e 2026.")
+else:
+    st.info("📋 Para calcular a retenção real, são necessários os dados de 2025 (`extrair_2025.py`) e 2026.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ===== GRÁFICO DE OCUPAÇÃO POR UNIDADE/SEGMENTO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Taxa de Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
