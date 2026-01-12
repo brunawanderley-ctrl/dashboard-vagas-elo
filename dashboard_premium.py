@@ -684,17 +684,14 @@ with col_left:
         hoverinfo='skip'
     ))
 
-    # Barra de ocupação - escala detalhada
+    # Barra de ocupação - escala 6 cores
     def cor_ocupacao(o):
-        if o >= 100: return '#065f46'   # Excelente (verde escuro) - Lotação Máxima
-        elif o >= 95: return '#16a34a'  # Ótima (verde) - Muito Quente
-        elif o >= 90: return '#22c55e'  # Quente (verde claro) - Boa
-        elif o >= 80: return '#4ade80'  # Morna Alta (verde-amarelo) - Estável
-        elif o >= 70: return '#a3e635'  # Morna (amarelo-verde) - Atenção
-        elif o >= 60: return '#fbbf24'  # Fria (amarelo) - Risco
-        elif o >= 50: return '#facc15'  # Muito Fria (amarelo escuro) - Muito Crítica
-        elif o >= 38: return '#f97316'  # Crítica (laranja)
-        else: return '#dc2626'          # Congelada (vermelho) - Inviável
+        if o >= 90: return '#065f46'    # Excelente (verde escuro) - 90-100%
+        elif o >= 80: return '#22c55e'  # Boa (verde) - 80-89%
+        elif o >= 70: return '#a3e635'  # Atenção (verde-amarelo) - 70-79%
+        elif o >= 50: return '#facc15'  # Risco (amarelo) - 50-69%
+        elif o >= 38: return '#f97316'  # Crítica (laranja) - 38-49%
+        else: return '#dc2626'          # Congelada (vermelho) - 0-37%
     colors = [cor_ocupacao(o) for o in df_unidades['Ocupação']]
 
     fig1.add_trace(go.Bar(
@@ -1163,26 +1160,20 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ===== TERMÔMETRO DE OCUPAÇÃO POR UNIDADE =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🌡️ Termômetro de Ocupação por Unidade</h3>", unsafe_allow_html=True)
 
-# Função para determinar cor do termômetro
+# Função para determinar cor do termômetro - escala 6 cores
 def cor_termometro(ocupacao):
-    if ocupacao >= 100: return '#065f46'   # Excelente
-    elif ocupacao >= 95: return '#16a34a'  # Ótima
-    elif ocupacao >= 90: return '#22c55e'  # Quente
-    elif ocupacao >= 80: return '#4ade80'  # Morna Alta
-    elif ocupacao >= 70: return '#a3e635'  # Morna
-    elif ocupacao >= 60: return '#fbbf24'  # Fria (amarelo)
-    elif ocupacao >= 50: return '#facc15'  # Muito Fria (amarelo escuro)
-    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja)
-    else: return '#dc2626'                 # Congelada (vermelho)
+    if ocupacao >= 90: return '#065f46'    # Excelente (verde escuro) - 90-100%
+    elif ocupacao >= 80: return '#22c55e'  # Boa (verde) - 80-89%
+    elif ocupacao >= 70: return '#a3e635'  # Atenção (verde-amarelo) - 70-79%
+    elif ocupacao >= 50: return '#facc15'  # Risco (amarelo) - 50-69%
+    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja) - 38-49%
+    else: return '#dc2626'                 # Congelada (vermelho) - 0-37%
 
 def classificacao_termometro(ocupacao):
-    if ocupacao >= 100: return 'Excelente'
-    elif ocupacao >= 95: return 'Ótima'
-    elif ocupacao >= 90: return 'Quente'
-    elif ocupacao >= 80: return 'Morna Alta'
-    elif ocupacao >= 70: return 'Morna'
-    elif ocupacao >= 60: return 'Fria'
-    elif ocupacao >= 50: return 'Muito Fria'
+    if ocupacao >= 90: return 'Excelente'
+    elif ocupacao >= 80: return 'Boa'
+    elif ocupacao >= 70: return 'Atenção'
+    elif ocupacao >= 50: return 'Risco'
     elif ocupacao >= 38: return 'Crítica'
     else: return 'Congelada'
 
@@ -1247,23 +1238,18 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     zmin=0,    # Força escala a começar em 0%
     zmax=100,  # Força escala a terminar em 100%
     colorscale=[
-        [0, '#7f1d1d'],      # 0-37%: Congelada (vermelho escuro) - Inviável
+        [0, '#dc2626'],      # 0-37%: Congelada (vermelho)
         [0.37, '#dc2626'],   # 37%: fim Congelada
-        [0.38, '#dc2626'],   # 38-49%: Crítica (vermelho/laranja)
-        [0.49, '#f97316'],   # 49%: fim Crítica (laranja)
-        [0.50, '#f97316'],   # 50-59%: Muito Fria (amarelo escuro)
-        [0.59, '#facc15'],   # 59%: fim Muito Fria (amarelo)
-        [0.60, '#facc15'],   # 60-69%: Fria (amarelo) - Risco
-        [0.69, '#fbbf24'],   # 69%: fim Fria
-        [0.70, '#fbbf24'],   # 70-79%: Morna (amarelo claro) - Atenção
-        [0.79, '#a3e635'],   # 79%: fim Morna
-        [0.80, '#a3e635'],   # 80-89%: Morna Alta (verde-amarelo) - Estável
-        [0.89, '#4ade80'],   # 89%: fim Morna Alta
-        [0.90, '#4ade80'],   # 90-94%: Quente (verde claro) - Boa
-        [0.94, '#22c55e'],   # 94%: fim Quente
-        [0.95, '#22c55e'],   # 95-99%: Ótima (verde) - Muito Quente
-        [0.99, '#16a34a'],   # 99%: fim Ótima
-        [1.0, '#065f46']     # 100%: Excelente (verde escuro) - Lotação Máxima
+        [0.38, '#f97316'],   # 38-49%: Crítica (laranja)
+        [0.49, '#f97316'],   # 49%: fim Crítica
+        [0.50, '#facc15'],   # 50-69%: Risco (amarelo)
+        [0.69, '#facc15'],   # 69%: fim Risco
+        [0.70, '#a3e635'],   # 70-79%: Atenção (verde-amarelo)
+        [0.79, '#a3e635'],   # 79%: fim Atenção
+        [0.80, '#22c55e'],   # 80-89%: Boa (verde)
+        [0.89, '#22c55e'],   # 89%: fim Boa
+        [0.90, '#065f46'],   # 90-100%: Excelente (verde escuro)
+        [1.0, '#065f46']     # 100%: Excelente
     ],
     text=pivot_ocupacao.values,
     texttemplate='%{text:.1f}%',
@@ -1272,8 +1258,8 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     colorbar=dict(
         title=dict(text='Ocupação %', font=dict(color='#a0a0b0')),
         tickfont=dict(color='#a0a0b0'),
-        tickvals=[0, 37, 50, 60, 70, 80, 90, 95, 100],
-        ticktext=['0%', '37%', '50%', '60%', '70%', '80%', '90%', '95%', '100%']
+        tickvals=[0, 38, 50, 70, 80, 90, 100],
+        ticktext=['0%', '38%', '50%', '70%', '80%', '90%', '100%']
     )
 ))
 
@@ -1290,16 +1276,13 @@ st.plotly_chart(fig_heatmap, use_container_width=True)
 
 # Legenda das faixas de ocupação
 st.markdown("""
-<div style='display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px;'>
-    <span style='background: #065f46; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>100% Excelente</span>
-    <span style='background: #16a34a; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>95-99% Ótima</span>
-    <span style='background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>90-94% Quente</span>
-    <span style='background: #4ade80; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>80-89% Morna Alta</span>
-    <span style='background: #a3e635; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>70-79% Morna</span>
-    <span style='background: #fbbf24; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>60-69% Fria</span>
-    <span style='background: #facc15; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>50-59% Muito Fria</span>
-    <span style='background: #f97316; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>38-49% Crítica</span>
-    <span style='background: #dc2626; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>0-37% Congelada</span>
+<div style='display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px;'>
+    <span style='background: #065f46; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>90-100% Excelente</span>
+    <span style='background: #22c55e; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>80-89% Boa</span>
+    <span style='background: #a3e635; color: #1a1a2e; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>70-79% Atenção</span>
+    <span style='background: #facc15; color: #1a1a2e; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>50-69% Risco</span>
+    <span style='background: #f97316; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>38-49% Crítica</span>
+    <span style='background: #dc2626; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 500;'>0-37% Congelada</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1637,15 +1620,12 @@ def cor_barra_ocupacao(ocupacao):
         ocupacao = float(ocupacao) if ocupacao else 0
     except:
         ocupacao = 0
-    if ocupacao >= 100: return '#065f46'   # Excelente
-    elif ocupacao >= 95: return '#16a34a'  # Ótima
-    elif ocupacao >= 90: return '#22c55e'  # Quente
-    elif ocupacao >= 80: return '#4ade80'  # Morna Alta
-    elif ocupacao >= 70: return '#a3e635'  # Morna
-    elif ocupacao >= 60: return '#fbbf24'  # Fria (amarelo)
-    elif ocupacao >= 50: return '#facc15'  # Muito Fria (amarelo escuro)
-    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja)
-    else: return '#dc2626'                 # Congelada (vermelho)
+    if ocupacao >= 90: return '#065f46'    # Excelente (verde escuro) - 90-100%
+    elif ocupacao >= 80: return '#22c55e'  # Boa (verde) - 80-89%
+    elif ocupacao >= 70: return '#a3e635'  # Atenção (verde-amarelo) - 70-79%
+    elif ocupacao >= 50: return '#facc15'  # Risco (amarelo) - 50-69%
+    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja) - 38-49%
+    else: return '#dc2626'                 # Congelada (vermelho) - 0-37%
 
 # Cria HTML da tabela com barras coloridas
 def criar_barra_html(ocupacao):
