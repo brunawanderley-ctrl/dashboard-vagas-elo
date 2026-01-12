@@ -1160,8 +1160,64 @@ with col_nv2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ===== TERMÔMETRO DE OCUPAÇÃO POR UNIDADE =====
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🌡️ Termômetro de Ocupação por Unidade</h3>", unsafe_allow_html=True)
+
+# Função para determinar cor do termômetro
+def cor_termometro(ocupacao):
+    if ocupacao >= 100: return '#065f46'   # Excelente
+    elif ocupacao >= 95: return '#16a34a'  # Ótima
+    elif ocupacao >= 90: return '#22c55e'  # Quente
+    elif ocupacao >= 80: return '#4ade80'  # Morna Alta
+    elif ocupacao >= 70: return '#a3e635'  # Morna
+    elif ocupacao >= 60: return '#fbbf24'  # Fria
+    elif ocupacao >= 50: return '#f97316'  # Muito Fria
+    elif ocupacao >= 38: return '#ea580c'  # Crítica
+    else: return '#dc2626'                 # Congelada
+
+def classificacao_termometro(ocupacao):
+    if ocupacao >= 100: return 'Excelente'
+    elif ocupacao >= 95: return 'Ótima'
+    elif ocupacao >= 90: return 'Quente'
+    elif ocupacao >= 80: return 'Morna Alta'
+    elif ocupacao >= 70: return 'Morna'
+    elif ocupacao >= 60: return 'Fria'
+    elif ocupacao >= 50: return 'Muito Fria'
+    elif ocupacao >= 38: return 'Crítica'
+    else: return 'Congelada'
+
+# Calcula ocupação por unidade
+df_termo = df_unidades.copy()
+cols_termo = st.columns(len(df_termo))
+
+for idx, (_, row) in enumerate(df_termo.iterrows()):
+    ocupacao = row['Ocupação']
+    cor = cor_termometro(ocupacao)
+    classif = classificacao_termometro(ocupacao)
+    unidade_nome = row['Unidade'].split('(')[1].replace(')', '') if '(' in row['Unidade'] else row['Unidade']
+
+    with cols_termo[idx]:
+        # Termômetro visual
+        st.markdown(f"""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{unidade_nome}</div>
+            <div style='position: relative; width: 50px; height: 180px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
+                <div style='position: absolute; bottom: 0; width: 100%; height: {min(ocupacao, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px; transition: height 0.5s;'></div>
+                <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
+                    <span style='font-size: 18px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{ocupacao:.0f}%</span>
+                </div>
+            </div>
+            <div style='margin-top: 8px;'>
+                <span style='background: {cor}; color: {"white" if ocupacao < 70 or ocupacao >= 90 else "#1a1a2e"}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;'>{classif}</span>
+            </div>
+            <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(row['Matriculados'])} / {int(row['Vagas'])}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ===== MAPA DE CALOR DE OCUPAÇÃO =====
-st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Mapa de Calor - Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Mapa de Calor - Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
 # Prepara dados para heatmap
 df_heatmap = df_resumo_all.copy()
