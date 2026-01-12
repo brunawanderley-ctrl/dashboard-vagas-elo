@@ -791,12 +791,12 @@ METAS_POR_CODIGO = {
     "03-JG": 750,    # Janga (Paulista)
     "04-CDR": 800,   # Cordeiro
 }
-# Metas de NOVATOS por unidade (proporcional)
+# Metas de NOVATOS por unidade
 METAS_NOVATOS = {
-    "01-BV": 305,    # Boa Viagem
-    "02-CD": 314,    # Candeias (Jaboatão)
-    "03-JG": 179,    # Janga (Paulista)
-    "04-CDR": 202,   # Cordeiro
+    "01-BV": 280,    # Boa Viagem (-25)
+    "02-CD": 284,    # Candeias (-30)
+    "03-JG": 204,    # Janga (+25)
+    "04-CDR": 232,   # Cordeiro (+30)
 }
 META_NOVATOS = 1000
 META_TOTAL = 1280 + 1270 + 750 + 800  # 4100
