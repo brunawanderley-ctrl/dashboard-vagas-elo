@@ -1124,6 +1124,188 @@ for i, tab in enumerate(tabs_alertas):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ===== COMPARATIVO 2025 vs 2026 =====
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Comparativo 2025 vs 2026 - Novatos e Veteranos</h3>", unsafe_allow_html=True)
+
+# Tenta carregar dados de 2025
+resumo_2025_path = Path(__file__).parent / "output" / "resumo_2025.json"
+if resumo_2025_path.exists():
+    with open(resumo_2025_path, "r", encoding="utf-8") as f:
+        resumo_2025 = json.load(f)
+
+    # Prepara dados para comparação
+    dados_comp = []
+    segmentos_validos = ["Ed. Infantil", "Fund. I", "Fund. II", "Ens. Médio"]
+
+    for unidade_2026 in resumo.get("unidades", []):
+        codigo = unidade_2026["codigo"]
+        nome_curto = codigo.split("-")[1] if "-" in codigo else codigo
+
+        # Encontra mesma unidade em 2025
+        unidade_2025 = next((u for u in resumo_2025.get("unidades", []) if u["codigo"] == codigo), None)
+
+        for seg in segmentos_validos:
+            dados_2026 = unidade_2026.get("segmentos", {}).get(seg, {})
+            dados_2025_seg = unidade_2025.get("segmentos", {}).get(seg, {}) if unidade_2025 else {}
+
+            nov_2026 = dados_2026.get("novatos", 0)
+            vet_2026 = dados_2026.get("veteranos", 0)
+            matr_2026 = dados_2026.get("matriculados", 0)
+
+            nov_2025 = dados_2025_seg.get("novatos", 0)
+            vet_2025 = dados_2025_seg.get("veteranos", 0)
+            matr_2025 = dados_2025_seg.get("matriculados", 0)
+
+            dados_comp.append({
+                "Unidade": nome_curto,
+                "Segmento": seg,
+                "Novatos_2025": nov_2025,
+                "Novatos_2026": nov_2026,
+                "Var_Nov": nov_2026 - nov_2025,
+                "Var_Nov_Pct": ((nov_2026 - nov_2025) / nov_2025 * 100) if nov_2025 > 0 else 0,
+                "Veteranos_2025": vet_2025,
+                "Veteranos_2026": vet_2026,
+                "Var_Vet": vet_2026 - vet_2025,
+                "Var_Vet_Pct": ((vet_2026 - vet_2025) / vet_2025 * 100) if vet_2025 > 0 else 0,
+                "Total_2025": matr_2025,
+                "Total_2026": matr_2026,
+                "Var_Total": matr_2026 - matr_2025,
+            })
+
+    df_comp = pd.DataFrame(dados_comp)
+
+    # Tabela comparativa por unidade
+    col_comp1, col_comp2 = st.columns(2)
+
+    with col_comp1:
+        st.markdown("<h4 style='color: #e2e8f0;'>Comparativo de Novatos</h4>", unsafe_allow_html=True)
+
+        # Agrupa por unidade
+        df_nov_unidade = df_comp.groupby("Unidade").agg({
+            "Novatos_2025": "sum",
+            "Novatos_2026": "sum",
+            "Var_Nov": "sum"
+        }).reset_index()
+
+        html_nov = "<table style='width:100%; font-size:12px; border-collapse:collapse;'>"
+        html_nov += "<tr style='background:#667eea; color:white;'><th style='padding:8px;'>Unidade</th><th>2025</th><th>2026</th><th>Variação</th></tr>"
+        for _, r in df_nov_unidade.iterrows():
+            cor_var = "#10b981" if r["Var_Nov"] >= 0 else "#ef4444"
+            sinal = "+" if r["Var_Nov"] >= 0 else ""
+            html_nov += f"<tr style='background:#1a1a2e;'><td style='padding:6px; color:#e0e0ff;'>{r['Unidade']}</td>"
+            html_nov += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Novatos_2025'])}</td>"
+            html_nov += f"<td style='text-align:center; color:#e0e0ff; font-weight:600;'>{int(r['Novatos_2026'])}</td>"
+            html_nov += f"<td style='text-align:center; color:{cor_var}; font-weight:600;'>{sinal}{int(r['Var_Nov'])}</td></tr>"
+        # Total
+        total_2025 = df_nov_unidade["Novatos_2025"].sum()
+        total_2026 = df_nov_unidade["Novatos_2026"].sum()
+        var_total = total_2026 - total_2025
+        cor_total = "#10b981" if var_total >= 0 else "#ef4444"
+        sinal_t = "+" if var_total >= 0 else ""
+        html_nov += f"<tr style='background:#2d2d44; font-weight:700;'><td style='padding:8px; color:#ffffff;'>TOTAL</td>"
+        html_nov += f"<td style='text-align:center; color:#ffffff;'>{int(total_2025)}</td>"
+        html_nov += f"<td style='text-align:center; color:#ffffff;'>{int(total_2026)}</td>"
+        html_nov += f"<td style='text-align:center; color:{cor_total};'>{sinal_t}{int(var_total)}</td></tr>"
+        html_nov += "</table>"
+        st.markdown(html_nov, unsafe_allow_html=True)
+
+    with col_comp2:
+        st.markdown("<h4 style='color: #e2e8f0;'>Comparativo de Veteranos</h4>", unsafe_allow_html=True)
+
+        df_vet_unidade = df_comp.groupby("Unidade").agg({
+            "Veteranos_2025": "sum",
+            "Veteranos_2026": "sum",
+            "Var_Vet": "sum"
+        }).reset_index()
+
+        html_vet = "<table style='width:100%; font-size:12px; border-collapse:collapse;'>"
+        html_vet += "<tr style='background:#764ba2; color:white;'><th style='padding:8px;'>Unidade</th><th>2025</th><th>2026</th><th>Variação</th></tr>"
+        for _, r in df_vet_unidade.iterrows():
+            cor_var = "#10b981" if r["Var_Vet"] >= 0 else "#ef4444"
+            sinal = "+" if r["Var_Vet"] >= 0 else ""
+            html_vet += f"<tr style='background:#1a1a2e;'><td style='padding:6px; color:#e0e0ff;'>{r['Unidade']}</td>"
+            html_vet += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Veteranos_2025'])}</td>"
+            html_vet += f"<td style='text-align:center; color:#e0e0ff; font-weight:600;'>{int(r['Veteranos_2026'])}</td>"
+            html_vet += f"<td style='text-align:center; color:{cor_var}; font-weight:600;'>{sinal}{int(r['Var_Vet'])}</td></tr>"
+        # Total
+        total_2025_v = df_vet_unidade["Veteranos_2025"].sum()
+        total_2026_v = df_vet_unidade["Veteranos_2026"].sum()
+        var_total_v = total_2026_v - total_2025_v
+        cor_total_v = "#10b981" if var_total_v >= 0 else "#ef4444"
+        sinal_tv = "+" if var_total_v >= 0 else ""
+        html_vet += f"<tr style='background:#2d2d44; font-weight:700;'><td style='padding:8px; color:#ffffff;'>TOTAL</td>"
+        html_vet += f"<td style='text-align:center; color:#ffffff;'>{int(total_2025_v)}</td>"
+        html_vet += f"<td style='text-align:center; color:#ffffff;'>{int(total_2026_v)}</td>"
+        html_vet += f"<td style='text-align:center; color:{cor_total_v};'>{sinal_tv}{int(var_total_v)}</td></tr>"
+        html_vet += "</table>"
+        st.markdown(html_vet, unsafe_allow_html=True)
+
+    # Tabela detalhada por segmento
+    st.markdown("<h4 style='color: #e2e8f0; margin-top: 20px;'>Detalhamento por Segmento</h4>", unsafe_allow_html=True)
+
+    html_seg = "<div style='max-height:350px; overflow-y:auto;'>"
+    html_seg += "<table style='width:100%; font-size:11px; border-collapse:collapse;'>"
+    html_seg += "<tr style='background:linear-gradient(90deg, #667eea, #764ba2); color:white; position:sticky; top:0;'>"
+    html_seg += "<th style='padding:8px;'>Unidade</th><th>Segmento</th>"
+    html_seg += "<th>Nov. 2025</th><th>Nov. 2026</th><th>Var.</th>"
+    html_seg += "<th>Vet. 2025</th><th>Vet. 2026</th><th>Var.</th>"
+    html_seg += "<th>Total 2025</th><th>Total 2026</th><th>Var.</th></tr>"
+
+    for _, r in df_comp.iterrows():
+        cor_nov = "#10b981" if r["Var_Nov"] >= 0 else "#ef4444"
+        cor_vet = "#10b981" if r["Var_Vet"] >= 0 else "#ef4444"
+        cor_tot = "#10b981" if r["Var_Total"] >= 0 else "#ef4444"
+        s_nov = "+" if r["Var_Nov"] >= 0 else ""
+        s_vet = "+" if r["Var_Vet"] >= 0 else ""
+        s_tot = "+" if r["Var_Total"] >= 0 else ""
+
+        html_seg += f"<tr style='background:#1a1a2e; border-bottom:1px solid #2d2d44;'>"
+        html_seg += f"<td style='padding:6px; color:#e0e0ff;'>{r['Unidade']}</td>"
+        html_seg += f"<td style='color:#94a3b8;'>{r['Segmento']}</td>"
+        html_seg += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Novatos_2025'])}</td>"
+        html_seg += f"<td style='text-align:center; color:#e0e0ff;'>{int(r['Novatos_2026'])}</td>"
+        html_seg += f"<td style='text-align:center; color:{cor_nov}; font-weight:600;'>{s_nov}{int(r['Var_Nov'])}</td>"
+        html_seg += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Veteranos_2025'])}</td>"
+        html_seg += f"<td style='text-align:center; color:#e0e0ff;'>{int(r['Veteranos_2026'])}</td>"
+        html_seg += f"<td style='text-align:center; color:{cor_vet}; font-weight:600;'>{s_vet}{int(r['Var_Vet'])}</td>"
+        html_seg += f"<td style='text-align:center; color:#94a3b8;'>{int(r['Total_2025'])}</td>"
+        html_seg += f"<td style='text-align:center; color:#e0e0ff;'>{int(r['Total_2026'])}</td>"
+        html_seg += f"<td style='text-align:center; color:{cor_tot}; font-weight:600;'>{s_tot}{int(r['Var_Total'])}</td></tr>"
+
+    html_seg += "</table></div>"
+    st.markdown(html_seg, unsafe_allow_html=True)
+
+    # Análise comparativa
+    st.markdown("<h4 style='color: #e2e8f0; margin-top: 20px;'>📈 Análise Comparativa</h4>", unsafe_allow_html=True)
+
+    total_nov_2025 = df_comp["Novatos_2025"].sum()
+    total_nov_2026 = df_comp["Novatos_2026"].sum()
+    total_vet_2025 = df_comp["Veteranos_2025"].sum()
+    total_vet_2026 = df_comp["Veteranos_2026"].sum()
+    total_matr_2025 = df_comp["Total_2025"].sum()
+    total_matr_2026 = df_comp["Total_2026"].sum()
+
+    var_nov_pct = ((total_nov_2026 - total_nov_2025) / total_nov_2025 * 100) if total_nov_2025 > 0 else 0
+    var_vet_pct = ((total_vet_2026 - total_vet_2025) / total_vet_2025 * 100) if total_vet_2025 > 0 else 0
+    var_matr_pct = ((total_matr_2026 - total_matr_2025) / total_matr_2025 * 100) if total_matr_2025 > 0 else 0
+
+    analise_html = f"""
+    <div style='background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;'>
+        <p style='color: #e0e0ff; margin: 5px 0;'><strong>Novatos:</strong> {int(total_nov_2025)} (2025) → {int(total_nov_2026)} (2026) |
+        <span style='color: {"#10b981" if var_nov_pct >= 0 else "#ef4444"};'>{"+" if var_nov_pct >= 0 else ""}{var_nov_pct:.1f}%</span></p>
+        <p style='color: #e0e0ff; margin: 5px 0;'><strong>Veteranos:</strong> {int(total_vet_2025)} (2025) → {int(total_vet_2026)} (2026) |
+        <span style='color: {"#10b981" if var_vet_pct >= 0 else "#ef4444"};'>{"+" if var_vet_pct >= 0 else ""}{var_vet_pct:.1f}%</span></p>
+        <p style='color: #e0e0ff; margin: 5px 0;'><strong>Total Matrículas:</strong> {int(total_matr_2025)} (2025) → {int(total_matr_2026)} (2026) |
+        <span style='color: {"#10b981" if var_matr_pct >= 0 else "#ef4444"};'>{"+" if var_matr_pct >= 0 else ""}{var_matr_pct:.1f}%</span></p>
+    </div>
+    """
+    st.markdown(analise_html, unsafe_allow_html=True)
+
+else:
+    st.info("📋 Para visualizar o comparativo 2025 vs 2026, execute o script `extrair_2025.py` para extrair os dados de 2025 do ActiveSoft.")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ===== GRÁFICO DE OCUPAÇÃO POR UNIDADE/SEGMENTO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Taxa de Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
@@ -1693,25 +1875,32 @@ def criar_barra_html(ocupacao):
 html_rows = []
 for _, row in df_exibir.iterrows():
     try:
-        ocupacao_val = float(row['Ocup.']) if row['Ocup.'] else 0
-    except:
-        ocupacao_val = 0
-    barra_html = criar_barra_html(ocupacao_val)
-    html_rows.append(f'''
-    <tr>
-        <td>{row['Unidade']}</td>
-        <td>{row['Segmento']}</td>
-        <td>{row['Turma']}</td>
-        <td>{row['Turno']}</td>
-        <td style="text-align: center;">{int(row['Vagas'])}</td>
-        <td style="text-align: center;">{int(row['Matr.'])}</td>
-        <td style="min-width: 150px;">{barra_html}</td>
-        <td style="text-align: center;">{int(row['Nov.'])}</td>
-        <td style="text-align: center;">{int(row['Vet.'])}</td>
-        <td style="text-align: center;">{int(row['Disp.'])}</td>
-        <td style="text-align: center;">{int(row['Pré'])}</td>
-    </tr>
-    ''')
+        ocupacao_val = float(row['Ocup.']) if pd.notna(row['Ocup.']) else 0
+        vagas_val = int(row['Vagas']) if pd.notna(row['Vagas']) else 0
+        matr_val = int(row['Matr.']) if pd.notna(row['Matr.']) else 0
+        nov_val = int(row['Nov.']) if pd.notna(row['Nov.']) else 0
+        vet_val = int(row['Vet.']) if pd.notna(row['Vet.']) else 0
+        disp_val = int(row['Disp.']) if pd.notna(row['Disp.']) else 0
+        pre_val = int(row['Pré']) if pd.notna(row['Pré']) else 0
+
+        barra_html = criar_barra_html(ocupacao_val)
+        html_rows.append(f'''
+        <tr>
+            <td>{row['Unidade']}</td>
+            <td>{row['Segmento']}</td>
+            <td>{row['Turma']}</td>
+            <td>{row['Turno']}</td>
+            <td style="text-align: center;">{vagas_val}</td>
+            <td style="text-align: center;">{matr_val}</td>
+            <td style="min-width: 150px;">{barra_html}</td>
+            <td style="text-align: center;">{nov_val}</td>
+            <td style="text-align: center;">{vet_val}</td>
+            <td style="text-align: center;">{disp_val}</td>
+            <td style="text-align: center;">{pre_val}</td>
+        </tr>
+        ''')
+    except Exception as e:
+        continue  # Pula linha com erro
 
 html_table = f'''
 <div style="max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #3d3d5c;">
