@@ -1244,6 +1244,8 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     z=pivot_ocupacao.values,
     x=pivot_ocupacao.columns.tolist(),
     y=pivot_ocupacao.index.tolist(),
+    zmin=0,    # Força escala a começar em 0%
+    zmax=100,  # Força escala a terminar em 100%
     colorscale=[
         [0, '#7f1d1d'],      # 0-37%: Congelada (vermelho escuro) - Inviável
         [0.37, '#dc2626'],   # 37%: fim Congelada
@@ -1269,7 +1271,9 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     hovertemplate='Unidade: %{x}<br>Segmento: %{y}<br>Ocupação: %{z:.1f}%<extra></extra>',
     colorbar=dict(
         title=dict(text='Ocupação %', font=dict(color='#a0a0b0')),
-        tickfont=dict(color='#a0a0b0')
+        tickfont=dict(color='#a0a0b0'),
+        tickvals=[0, 37, 50, 60, 70, 80, 90, 95, 100],
+        ticktext=['0%', '37%', '50%', '60%', '70%', '80%', '90%', '95%', '100%']
     )
 ))
 
