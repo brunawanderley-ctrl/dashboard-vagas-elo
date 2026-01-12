@@ -692,8 +692,8 @@ with col_left:
         elif o >= 80: return '#4ade80'  # Morna Alta (verde-amarelo) - Estável
         elif o >= 70: return '#a3e635'  # Morna (amarelo-verde) - Atenção
         elif o >= 60: return '#fbbf24'  # Fria (amarelo) - Risco
-        elif o >= 50: return '#f97316'  # Muito Fria (laranja) - Muito Crítica
-        elif o >= 38: return '#ea580c'  # Crítica (laranja escuro)
+        elif o >= 50: return '#facc15'  # Muito Fria (amarelo escuro) - Muito Crítica
+        elif o >= 38: return '#f97316'  # Crítica (laranja)
         else: return '#dc2626'          # Congelada (vermelho) - Inviável
     colors = [cor_ocupacao(o) for o in df_unidades['Ocupação']]
 
@@ -1170,10 +1170,10 @@ def cor_termometro(ocupacao):
     elif ocupacao >= 90: return '#22c55e'  # Quente
     elif ocupacao >= 80: return '#4ade80'  # Morna Alta
     elif ocupacao >= 70: return '#a3e635'  # Morna
-    elif ocupacao >= 60: return '#fbbf24'  # Fria
-    elif ocupacao >= 50: return '#f97316'  # Muito Fria
-    elif ocupacao >= 38: return '#ea580c'  # Crítica
-    else: return '#dc2626'                 # Congelada
+    elif ocupacao >= 60: return '#fbbf24'  # Fria (amarelo)
+    elif ocupacao >= 50: return '#facc15'  # Muito Fria (amarelo escuro)
+    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja)
+    else: return '#dc2626'                 # Congelada (vermelho)
 
 def classificacao_termometro(ocupacao):
     if ocupacao >= 100: return 'Excelente'
@@ -1249,13 +1249,13 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     colorscale=[
         [0, '#7f1d1d'],      # 0-37%: Congelada (vermelho escuro) - Inviável
         [0.37, '#dc2626'],   # 37%: fim Congelada
-        [0.38, '#dc2626'],   # 38-49%: Crítica (vermelho)
-        [0.49, '#ea580c'],   # 49%: fim Crítica
-        [0.50, '#ea580c'],   # 50-59%: Muito Fria (laranja escuro)
-        [0.59, '#f97316'],   # 59%: fim Muito Fria
-        [0.60, '#f97316'],   # 60-69%: Fria (laranja) - Risco
+        [0.38, '#dc2626'],   # 38-49%: Crítica (vermelho/laranja)
+        [0.49, '#f97316'],   # 49%: fim Crítica (laranja)
+        [0.50, '#f97316'],   # 50-59%: Muito Fria (amarelo escuro)
+        [0.59, '#facc15'],   # 59%: fim Muito Fria (amarelo)
+        [0.60, '#facc15'],   # 60-69%: Fria (amarelo) - Risco
         [0.69, '#fbbf24'],   # 69%: fim Fria
-        [0.70, '#fbbf24'],   # 70-79%: Morna (amarelo) - Atenção
+        [0.70, '#fbbf24'],   # 70-79%: Morna (amarelo claro) - Atenção
         [0.79, '#a3e635'],   # 79%: fim Morna
         [0.80, '#a3e635'],   # 80-89%: Morna Alta (verde-amarelo) - Estável
         [0.89, '#4ade80'],   # 89%: fim Morna Alta
@@ -1297,8 +1297,8 @@ st.markdown("""
     <span style='background: #4ade80; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>80-89% Morna Alta</span>
     <span style='background: #a3e635; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>70-79% Morna</span>
     <span style='background: #fbbf24; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>60-69% Fria</span>
-    <span style='background: #f97316; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>50-59% Muito Fria</span>
-    <span style='background: #ea580c; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>38-49% Crítica</span>
+    <span style='background: #facc15; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>50-59% Muito Fria</span>
+    <span style='background: #f97316; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>38-49% Crítica</span>
     <span style='background: #dc2626; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>0-37% Congelada</span>
 </div>
 """, unsafe_allow_html=True)
@@ -1633,18 +1633,26 @@ df_exibir.columns = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matr.', 
 
 # Função para cor da barra de ocupação (mesma escala do termômetro)
 def cor_barra_ocupacao(ocupacao):
+    try:
+        ocupacao = float(ocupacao) if ocupacao else 0
+    except:
+        ocupacao = 0
     if ocupacao >= 100: return '#065f46'   # Excelente
     elif ocupacao >= 95: return '#16a34a'  # Ótima
     elif ocupacao >= 90: return '#22c55e'  # Quente
     elif ocupacao >= 80: return '#4ade80'  # Morna Alta
     elif ocupacao >= 70: return '#a3e635'  # Morna
-    elif ocupacao >= 60: return '#fbbf24'  # Fria
-    elif ocupacao >= 50: return '#f97316'  # Muito Fria
-    elif ocupacao >= 38: return '#ea580c'  # Crítica
-    else: return '#dc2626'                 # Congelada
+    elif ocupacao >= 60: return '#fbbf24'  # Fria (amarelo)
+    elif ocupacao >= 50: return '#facc15'  # Muito Fria (amarelo escuro)
+    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja)
+    else: return '#dc2626'                 # Congelada (vermelho)
 
 # Cria HTML da tabela com barras coloridas
 def criar_barra_html(ocupacao):
+    try:
+        ocupacao = float(ocupacao) if ocupacao else 0
+    except:
+        ocupacao = 0
     cor = cor_barra_ocupacao(ocupacao)
     largura = min(ocupacao, 100)
     return f'''<div style="display: flex; align-items: center; gap: 8px;">
@@ -1657,7 +1665,10 @@ def criar_barra_html(ocupacao):
 # Gera HTML da tabela
 html_rows = []
 for _, row in df_exibir.iterrows():
-    ocupacao_val = row['Ocup.']
+    try:
+        ocupacao_val = float(row['Ocup.']) if row['Ocup.'] else 0
+    except:
+        ocupacao_val = 0
     barra_html = criar_barra_html(ocupacao_val)
     html_rows.append(f'''
     <tr>
