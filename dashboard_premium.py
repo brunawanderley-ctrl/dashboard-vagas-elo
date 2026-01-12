@@ -1866,111 +1866,22 @@ df_exibir = df_det[colunas_exibir].copy()
 df_exibir['Unidade'] = df_exibir['Unidade'].apply(lambda x: x.split('(')[1].replace(')', '') if '(' in str(x) else str(x))
 df_exibir.columns = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matr.', 'Ocup.', 'Nov.', 'Vet.', 'Disp.', 'Pré']
 
-# Função para cor da barra de ocupação (mesma escala do termômetro)
-def cor_barra_ocupacao(ocupacao):
-    try:
-        ocupacao = float(ocupacao) if ocupacao else 0
-    except:
-        ocupacao = 0
-    if ocupacao >= 90: return '#065f46'    # Excelente (verde escuro) - 90-100%
-    elif ocupacao >= 80: return '#22c55e'  # Boa (verde) - 80-89%
-    elif ocupacao >= 70: return '#a3e635'  # Atenção (verde-amarelo) - 70-79%
-    elif ocupacao >= 50: return '#facc15'  # Risco (amarelo) - 50-69%
-    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja) - 38-49%
-    else: return '#dc2626'                 # Congelada (vermelho) - 0-37%
+# Prepara DataFrame para exibição
+df_exibir['Ocup.'] = df_exibir['Ocup.'].apply(lambda x: f"{x:.1f}%" if pd.notna(x) else "0%")
 
-# Cria HTML da tabela com barras coloridas
-def criar_barra_html(ocupacao):
-    try:
-        ocupacao = float(ocupacao) if ocupacao else 0
-    except:
-        ocupacao = 0
-    cor = cor_barra_ocupacao(ocupacao)
-    largura = min(ocupacao, 100)
-    return f'''<div style="display: flex; align-items: center; gap: 8px;">
-        <div style="flex: 1; background: #2d2d44; border-radius: 4px; height: 18px; overflow: hidden;">
-            <div style="width: {largura}%; height: 100%; background: linear-gradient(90deg, {cor}, {cor}cc); border-radius: 4px;"></div>
-        </div>
-        <span style="min-width: 45px; text-align: right; font-size: 12px;">{ocupacao:.1f}%</span>
-    </div>'''
+# Converte colunas numéricas para int
+for col in ['Vagas', 'Matr.', 'Nov.', 'Vet.', 'Disp.', 'Pré']:
+    df_exibir[col] = df_exibir[col].apply(lambda x: int(float(x)) if pd.notna(x) else 0)
 
-# Gera HTML da tabela
-html_rows = []
+# Exibe tabela usando Streamlit nativo
 if len(df_exibir) > 0:
-    for idx, row in df_exibir.iterrows():
-        try:
-            # Extrai valores com tratamento seguro
-            ocupacao_val = 0
-            try:
-                ocupacao_val = float(row['Ocup.']) if pd.notna(row['Ocup.']) else 0
-            except:
-                pass
-
-            vagas_val = int(float(row['Vagas'])) if pd.notna(row['Vagas']) else 0
-            matr_val = int(float(row['Matr.'])) if pd.notna(row['Matr.']) else 0
-            nov_val = int(float(row['Nov.'])) if pd.notna(row['Nov.']) else 0
-            vet_val = int(float(row['Vet.'])) if pd.notna(row['Vet.']) else 0
-            disp_val = int(float(row['Disp.'])) if pd.notna(row['Disp.']) else 0
-            pre_val = int(float(row['Pré'])) if pd.notna(row['Pré']) else 0
-
-            unidade_str = str(row['Unidade']) if pd.notna(row['Unidade']) else '-'
-            segmento_str = str(row['Segmento']) if pd.notna(row['Segmento']) else '-'
-            turma_str = str(row['Turma']) if pd.notna(row['Turma']) else '-'
-            turno_str = str(row['Turno']) if pd.notna(row['Turno']) else '-'
-
-            barra_html = criar_barra_html(ocupacao_val)
-            html_rows.append(f'''
-            <tr>
-                <td>{unidade_str}</td>
-                <td>{segmento_str}</td>
-                <td>{turma_str}</td>
-                <td>{turno_str}</td>
-                <td style="text-align: center;">{vagas_val}</td>
-                <td style="text-align: center;">{matr_val}</td>
-                <td style="min-width: 150px;">{barra_html}</td>
-                <td style="text-align: center;">{nov_val}</td>
-                <td style="text-align: center;">{vet_val}</td>
-                <td style="text-align: center;">{disp_val}</td>
-                <td style="text-align: center;">{pre_val}</td>
-            </tr>
-            ''')
-        except Exception as e:
-            continue  # Pula linha com erro
-
-html_table = f'''
-<div style="max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #3d3d5c;">
-<table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-    <thead>
-        <tr style="background: linear-gradient(90deg, #667eea, #764ba2); color: white; position: sticky; top: 0;">
-            <th style="padding: 10px 8px; text-align: left;">Unidade</th>
-            <th style="padding: 10px 8px; text-align: left;">Segmento</th>
-            <th style="padding: 10px 8px; text-align: left;">Turma</th>
-            <th style="padding: 10px 8px; text-align: left;">Turno</th>
-            <th style="padding: 10px 8px; text-align: center;">Vagas</th>
-            <th style="padding: 10px 8px; text-align: center;">Matr.</th>
-            <th style="padding: 10px 8px; text-align: left; min-width: 150px;">Ocupação</th>
-            <th style="padding: 10px 8px; text-align: center;">Nov.</th>
-            <th style="padding: 10px 8px; text-align: center;">Vet.</th>
-            <th style="padding: 10px 8px; text-align: center;">Disp.</th>
-            <th style="padding: 10px 8px; text-align: center;">Pré</th>
-        </tr>
-    </thead>
-    <tbody>
-        {"".join(html_rows)}
-    </tbody>
-</table>
-</div>
-<style>
-    table tbody tr:nth-child(odd) {{ background: #1a1a2e; }}
-    table tbody tr:nth-child(even) {{ background: #16162a; }}
-    table tbody tr:hover {{ background: #2d2d44; }}
-    table td {{ padding: 8px; color: #e0e0ff; border-bottom: 1px solid #2d2d44; }}
-</style>
-'''
-
-if len(html_rows) > 0:
-    st.markdown(html_table, unsafe_allow_html=True)
-    st.caption(f"Exibindo {len(html_rows)} turmas • Filtros aplicados: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
+    st.dataframe(
+        df_exibir,
+        use_container_width=True,
+        height=450,
+        hide_index=True
+    )
+    st.caption(f"Exibindo {len(df_exibir)} turmas • Filtros: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
 else:
     st.info("Nenhuma turma encontrada com os filtros selecionados.")
 
