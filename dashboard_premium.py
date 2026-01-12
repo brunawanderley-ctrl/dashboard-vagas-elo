@@ -1081,13 +1081,14 @@ for i, tab in enumerate(tabs_alertas):
 
             if len(lotadas_exibir) > 0:
                 for _, t in lotadas_exibir.iterrows():
+                    seg_nome = t['Segmento'] if len(str(t['Segmento'])) > 4 else t['Segmento']
                     st.markdown(f"""
                     <div style='background: rgba(30, 41, 59, 0.9); padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 0.4rem; border: 1px solid rgba(239, 68, 68, 0.3);'>
                         <div style='display: flex; justify-content: space-between; align-items: center;'>
                             <span style='color: #ffffff; font-weight: 600;'>{t['Turma']}</span>
-                            <span style='color: #ef4444; font-weight: 800; font-size: 1.1rem;'>{t['Ocupacao']:.0f}%</span>
+                            <span style='color: #ef4444; font-weight: 800; font-size: 1.1rem;'>{t['Ocupacao']:.0f}% <span style='font-size: 0.75rem; color: #fca5a5;'>({int(t['Matriculados'])} alunos)</span></span>
                         </div>
-                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{t['Segmento']} • {int(t['Matriculados'])}/{int(t['Vagas'])} alunos</p>
+                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{seg_nome} • {int(t['Matriculados'])}/{int(t['Vagas'])} vagas preenchidas</p>
                     </div>
                     """, unsafe_allow_html=True)
                 if limite and len(lotadas) > limite:
@@ -1106,13 +1107,14 @@ for i, tab in enumerate(tabs_alertas):
             if len(vazias_exibir) > 0:
                 for _, t in vazias_exibir.iterrows():
                     vagas_disp = int(t['Vagas'] - t['Matriculados'])
+                    seg_nome = t['Segmento'] if len(str(t['Segmento'])) > 4 else t['Segmento']
                     st.markdown(f"""
                     <div style='background: rgba(30, 41, 59, 0.9); padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 0.4rem; border: 1px solid rgba(251, 191, 36, 0.3);'>
                         <div style='display: flex; justify-content: space-between; align-items: center;'>
                             <span style='color: #ffffff; font-weight: 600;'>{t['Turma']}</span>
-                            <span style='color: #f59e0b; font-weight: 800; font-size: 1.1rem;'>{vagas_disp} vagas</span>
+                            <span style='color: #f59e0b; font-weight: 800; font-size: 1.1rem;'>{t['Ocupacao']:.0f}% <span style='font-size: 0.75rem; color: #fcd34d;'>({int(t['Matriculados'])} alunos)</span></span>
                         </div>
-                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{t['Segmento']} • {t['Ocupacao']:.0f}% ocupação</p>
+                        <p style='color: #94a3b8; font-size: 0.8rem; margin: 0.3rem 0 0 0;'>{seg_nome} • {vagas_disp} vagas disponíveis</p>
                     </div>
                     """, unsafe_allow_html=True)
                 if limite and len(vazias) > limite:
