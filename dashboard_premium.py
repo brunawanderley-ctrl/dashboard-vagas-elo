@@ -786,20 +786,20 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ===== METAS POR UNIDADE =====
 # Mapeamento por código da unidade (mais preciso)
 METAS_POR_CODIGO = {
-    "01-BV": 1280,   # Boa Viagem
-    "02-CD": 1300,   # Candeias (Jaboatão)
-    "03-JG": 750,    # Janga (Paulista)
+    "01-BV": 1250,   # Boa Viagem
+    "02-CD": 1200,   # Candeias (Jaboatão)
+    "03-JG": 850,    # Janga (Paulista)
     "04-CDR": 800,   # Cordeiro
 }
-# Metas de NOVATOS por unidade
+# Metas de NOVATOS por unidade (proporcional ao total)
 METAS_NOVATOS = {
-    "01-BV": 280,    # Boa Viagem (-25)
-    "02-CD": 284,    # Candeias (-30)
-    "03-JG": 204,    # Janga (+25)
-    "04-CDR": 232,   # Cordeiro (+30)
+    "01-BV": 305,    # Boa Viagem (1250/4100 * 1000)
+    "02-CD": 293,    # Candeias (1200/4100 * 1000)
+    "03-JG": 207,    # Janga (850/4100 * 1000)
+    "04-CDR": 195,   # Cordeiro (800/4100 * 1000)
 }
 META_NOVATOS = 1000
-META_TOTAL = 1280 + 1300 + 750 + 800  # 4130
+META_TOTAL = 1250 + 1200 + 850 + 800  # 4100
 
 # ===== INSIGHTS EXECUTIVOS - CEO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>💡 Insights Executivos</h3>", unsafe_allow_html=True)
