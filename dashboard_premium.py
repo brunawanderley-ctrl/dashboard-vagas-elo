@@ -684,14 +684,17 @@ with col_left:
         hoverinfo='skip'
     ))
 
-    # Barra de ocupação (verde escuro = 100% ótimo)
+    # Barra de ocupação - escala detalhada
     def cor_ocupacao(o):
-        if o >= 95: return '#065f46'    # Verde escuro - ótimo
-        elif o >= 85: return '#10b981'  # Verde - muito bom
-        elif o >= 70: return '#6ee7b7'  # Verde água - bom
-        elif o >= 50: return '#fbbf24'  # Amarelo - médio
-        elif o >= 30: return '#f97316'  # Laranja - baixo
-        else: return '#ef4444'          # Vermelho - crítico
+        if o >= 100: return '#065f46'   # Excelente (verde escuro) - Lotação Máxima
+        elif o >= 95: return '#16a34a'  # Ótima (verde) - Muito Quente
+        elif o >= 90: return '#22c55e'  # Quente (verde claro) - Boa
+        elif o >= 80: return '#4ade80'  # Morna Alta (verde-amarelo) - Estável
+        elif o >= 70: return '#a3e635'  # Morna (amarelo-verde) - Atenção
+        elif o >= 60: return '#fbbf24'  # Fria (amarelo) - Risco
+        elif o >= 50: return '#f97316'  # Muito Fria (laranja) - Muito Crítica
+        elif o >= 38: return '#ea580c'  # Crítica (laranja escuro)
+        else: return '#dc2626'          # Congelada (vermelho) - Inviável
     colors = [cor_ocupacao(o) for o in df_unidades['Ocupação']]
 
     fig1.add_trace(go.Bar(
@@ -1186,12 +1189,23 @@ fig_heatmap = go.Figure(data=go.Heatmap(
     x=pivot_ocupacao.columns.tolist(),
     y=pivot_ocupacao.index.tolist(),
     colorscale=[
-        [0, '#ef4444'],      # Vermelho - 0% (péssimo)
-        [0.3, '#f97316'],    # Laranja - 30%
-        [0.5, '#fbbf24'],    # Amarelo - 50%
-        [0.7, '#6ee7b7'],    # Verde água - 70%
-        [0.85, '#10b981'],   # Verde - 85%
-        [1, '#065f46']       # Verde escuro - 100% (ótimo)
+        [0, '#7f1d1d'],      # 0-37%: Congelada (vermelho escuro) - Inviável
+        [0.37, '#dc2626'],   # 37%: fim Congelada
+        [0.38, '#dc2626'],   # 38-49%: Crítica (vermelho)
+        [0.49, '#ea580c'],   # 49%: fim Crítica
+        [0.50, '#ea580c'],   # 50-59%: Muito Fria (laranja escuro)
+        [0.59, '#f97316'],   # 59%: fim Muito Fria
+        [0.60, '#f97316'],   # 60-69%: Fria (laranja) - Risco
+        [0.69, '#fbbf24'],   # 69%: fim Fria
+        [0.70, '#fbbf24'],   # 70-79%: Morna (amarelo) - Atenção
+        [0.79, '#a3e635'],   # 79%: fim Morna
+        [0.80, '#a3e635'],   # 80-89%: Morna Alta (verde-amarelo) - Estável
+        [0.89, '#4ade80'],   # 89%: fim Morna Alta
+        [0.90, '#4ade80'],   # 90-94%: Quente (verde claro) - Boa
+        [0.94, '#22c55e'],   # 94%: fim Quente
+        [0.95, '#22c55e'],   # 95-99%: Ótima (verde) - Muito Quente
+        [0.99, '#16a34a'],   # 99%: fim Ótima
+        [1.0, '#065f46']     # 100%: Excelente (verde escuro) - Lotação Máxima
     ],
     text=pivot_ocupacao.values,
     texttemplate='%{text:.1f}%',
@@ -1213,6 +1227,21 @@ fig_heatmap.update_layout(
 )
 
 st.plotly_chart(fig_heatmap, use_container_width=True)
+
+# Legenda das faixas de ocupação
+st.markdown("""
+<div style='display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px;'>
+    <span style='background: #065f46; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>100% Excelente</span>
+    <span style='background: #16a34a; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>95-99% Ótima</span>
+    <span style='background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>90-94% Quente</span>
+    <span style='background: #4ade80; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>80-89% Morna Alta</span>
+    <span style='background: #a3e635; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>70-79% Morna</span>
+    <span style='background: #fbbf24; color: #1a1a2e; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>60-69% Fria</span>
+    <span style='background: #f97316; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>50-59% Muito Fria</span>
+    <span style='background: #ea580c; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>38-49% Crítica</span>
+    <span style='background: #dc2626; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px;'>0-37% Congelada</span>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
