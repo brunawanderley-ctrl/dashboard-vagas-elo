@@ -6,12 +6,179 @@ import json
 import sqlite3
 import subprocess
 import os
-import base64
-import io
+import time
 from pathlib import Path
 from datetime import datetime
 
-# Configuração da página
+# ===== CONSTANTES =====
+BASE_DIR = Path(__file__).parent
+BASE_PATH = BASE_DIR / "output"
+
+# Metas por unidade
+METAS_MATRICULAS = {
+    "01-BV": 1250, "02-CD": 1200, "03-JG": 850, "04-CDR": 800
+}
+METAS_NOVATOS = {
+    "01-BV": 285, "02-CD": 273, "03-JG": 227, "04-CDR": 215
+}
+META_NOVATOS_TOTAL = 1000
+META_MATRICULAS_TOTAL = sum(METAS_MATRICULAS.values())  # 4100
+
+# Cores premium
+COLORS = {
+    'primary': '#667eea',
+    'secondary': '#764ba2',
+    'success': '#4ade80',
+    'warning': '#fbbf24',
+    'danger': '#f87171',
+    'info': '#60a5fa',
+    'gradient': ['#667eea', '#764ba2', '#a855f7', '#ec4899']
+}
+
+# Layout padrão Plotly
+PLOTLY_LAYOUT = dict(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+    xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', tickfont=dict(color='#a0a0b0')),
+    yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', tickfont=dict(color='#a0a0b0')),
+    legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(color='#a0a0b0')),
+    margin=dict(t=40, b=40, l=40, r=40)
+)
+
+# ===== FUNÇÕES AUXILIARES =====
+def extrair_nome_curto(nome_completo):
+    """Extrai nome curto da unidade: '1 - BV (Boa Viagem)' -> 'Boa Viagem'"""
+    if '(' in str(nome_completo):
+        return nome_completo.split('(')[1].replace(')', '')
+    return str(nome_completo)
+
+def calcular_ocupacao(matriculados, vagas):
+    """Calcula taxa de ocupação em porcentagem"""
+    return round((matriculados / vagas * 100), 1) if vagas > 0 else 0.0
+
+def cor_por_porcentagem(valor, limites=(80, 60)):
+    """Retorna cor baseada em porcentagem: verde/amarelo/vermelho"""
+    alto, medio = limites
+    if valor >= alto:
+        return '#10b981'  # verde
+    elif valor >= medio:
+        return '#f59e0b'  # amarelo
+    return '#ef4444'  # vermelho
+
+def cor_ocupacao_6_niveis(ocupacao):
+    """Escala de 6 cores para ocupação"""
+    if ocupacao >= 90: return '#065f46'    # Excelente (verde escuro)
+    elif ocupacao >= 80: return '#22c55e'  # Boa (verde)
+    elif ocupacao >= 70: return '#a3e635'  # Atenção (verde-amarelo)
+    elif ocupacao >= 50: return '#facc15'  # Risco (amarelo)
+    elif ocupacao >= 38: return '#f97316'  # Crítica (laranja)
+    return '#dc2626'                        # Congelada (vermelho)
+
+def status_meta(atingimento):
+    """Retorna status textual da meta"""
+    if atingimento >= 100: return 'Atingida'
+    elif atingimento >= 90: return 'Quase lá'
+    elif atingimento >= 80: return 'Bom'
+    elif atingimento >= 60: return 'Atenção'
+    elif atingimento >= 40: return 'Risco'
+    return 'Crítico'
+
+def get_meta_unidade(unidade_nome, tipo='matriculas'):
+    """Obtém meta de matrículas ou novatos para uma unidade"""
+    metas = METAS_MATRICULAS if tipo == 'matriculas' else METAS_NOVATOS
+    for codigo, valor in metas.items():
+        if codigo in unidade_nome or any(nome in unidade_nome for nome in
+            ['Boa Viagem', 'Jaboatão', 'Candeias', 'Paulista', 'Janga', 'Cordeiro']):
+            if '01-BV' in codigo and ('01-BV' in unidade_nome or 'Boa Viagem' in unidade_nome):
+                return valor
+            elif '02-CD' in codigo and ('02-CD' in unidade_nome or 'Jaboatão' in unidade_nome or 'Candeias' in unidade_nome):
+                return valor
+            elif '03-JG' in codigo and ('03-JG' in unidade_nome or 'Paulista' in unidade_nome or 'Janga' in unidade_nome):
+                return valor
+            elif '04-CDR' in codigo and ('04-CDR' in unidade_nome or 'Cordeiro' in unidade_nome):
+                return valor
+    return 0
+
+def extrair_turno(turma_nome):
+    """Extrai turno do nome da turma"""
+    turma_lower = turma_nome.lower()
+    if "manhã" in turma_lower or "manha" in turma_lower:
+        return "Manhã"
+    elif "tarde" in turma_lower:
+        return "Tarde"
+    elif "integral" in turma_lower:
+        return "Integral"
+    return "Outro"
+
+def extrair_serie(turma_nome):
+    """Extrai série do nome da turma para cálculo de retenção"""
+    turma_lower = turma_nome.lower()
+    # Educação Infantil (ordem V->IV->III->II para evitar substring match)
+    if "infantil v" in turma_lower or "infantil 5" in turma_lower:
+        return "Infantil V"
+    elif "infantil iv" in turma_lower or "infantil 4" in turma_lower:
+        return "Infantil IV"
+    elif "infantil iii" in turma_lower or "infantil 3" in turma_lower:
+        return "Infantil III"
+    elif "infantil ii" in turma_lower or "infantil 2" in turma_lower:
+        return "Infantil II"
+    # Fundamental I
+    elif "1º ano" in turma_lower or "1° ano" in turma_lower:
+        return "1º ano"
+    elif "2º ano" in turma_lower or "2° ano" in turma_lower:
+        return "2º ano"
+    elif "3º ano" in turma_lower or "3° ano" in turma_lower:
+        return "3º ano"
+    elif "4º ano" in turma_lower or "4° ano" in turma_lower:
+        return "4º ano"
+    elif "5º ano" in turma_lower or "5° ano" in turma_lower:
+        return "5º ano"
+    # Fundamental II
+    elif "6º ano" in turma_lower or "6° ano" in turma_lower:
+        return "6º ano"
+    elif "7º ano" in turma_lower or "7° ano" in turma_lower:
+        return "7º ano"
+    elif "8º ano" in turma_lower or "8° ano" in turma_lower:
+        return "8º ano"
+    elif "9º ano" in turma_lower or "9° ano" in turma_lower:
+        return "9º ano"
+    # Ensino Médio
+    elif "1ª série" in turma_lower or "1a série" in turma_lower:
+        return "1ª série EM"
+    elif "2ª série" in turma_lower or "2a série" in turma_lower:
+        return "2ª série EM"
+    elif "3ª série" in turma_lower or "3a série" in turma_lower:
+        return "3ª série EM"
+    return None
+
+def gerar_termometro_html(nome, valor_atual, meta, tipo='matriculas'):
+    """Gera HTML de termômetro para metas"""
+    atingimento = (valor_atual / meta * 100) if meta > 0 else 0
+    cor = cor_ocupacao_6_niveis(atingimento)
+    status = status_meta(atingimento)
+    gap = int(valor_atual - meta)
+    sinal = '+' if gap >= 0 else ''
+    cor_texto = 'white' if atingimento < 80 or atingimento >= 90 else '#1a1a2e'
+
+    return f"""
+    <div style='text-align: center; padding: 10px;'>
+        <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{nome}</div>
+        <div style='position: relative; width: 50px; height: 160px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
+            <div style='position: absolute; bottom: 0; width: 100%; height: {min(atingimento, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px;'></div>
+            <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
+                <span style='font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{atingimento:.0f}%</span>
+            </div>
+        </div>
+        <div style='margin-top: 8px;'>
+            <span style='background: {cor}; color: {cor_texto}; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;'>{status}</span>
+        </div>
+        <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(valor_atual)} / {int(meta)}</div>
+        <div style='font-size: 10px; color: {cor}; font-weight: 600;'>Gap: {sinal}{gap}</div>
+    </div>
+    """
+
+# ===== CONFIGURAÇÃO DA PÁGINA =====
 st.set_page_config(
     page_title="Vagas Colégio Elo",
     page_icon="🎓",
@@ -19,16 +186,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-BASE_DIR = Path(__file__).parent
-
-# Toggle de tema (precisa vir antes do CSS)
-if 'tema_escuro' not in st.session_state:
-    st.session_state.tema_escuro = True
-
-# CSS Dinâmico baseado no tema
-if st.session_state.get('tema_toggle', True):
-    # CSS Premium Dark Mode
-    st.markdown("""
+# CSS Premium Dark Mode
+st.markdown("""
 <style>
     /* Dark theme base */
     .stApp {
@@ -179,142 +338,6 @@ if st.session_state.get('tema_toggle', True):
     }
 </style>
 """, unsafe_allow_html=True)
-else:
-    # CSS Light Mode
-    st.markdown("""
-<style>
-    /* Light theme base */
-    .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 50%, #dce2ed 100%);
-    }
-
-    /* Main container */
-    .main .block-container {
-        padding: 2rem 3rem;
-        max-width: 1400px;
-    }
-
-    /* Headers */
-    h1, h2, h3 {
-        color: #1e3a5f !important;
-        font-weight: 600 !important;
-    }
-
-    h1 {
-        font-size: 2.5rem !important;
-        background: linear-gradient(90deg, #4a6fa5 0%, #6b5b95 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    /* Metric cards */
-    [data-testid="stMetric"] {
-        background: linear-gradient(145deg, #ffffff 0%, #f0f2f6 100%);
-        border: 1px solid rgba(74, 111, 165, 0.2);
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    [data-testid="stMetric"] label {
-        color: #5a6a7a !important;
-        font-size: 0.9rem !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: #1e3a5f !important;
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-    }
-
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 12px;
-        padding: 0.5rem;
-        gap: 0.5rem;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background: transparent;
-        color: #5a6a7a;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-    }
-
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #4a6fa5 0%, #6b5b95 100%);
-        color: white !important;
-    }
-
-    /* Button */
-    .stButton > button {
-        background: linear-gradient(135deg, #4a6fa5 0%, #6b5b95 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(74, 111, 165, 0.3);
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(74, 111, 165, 0.4);
-    }
-
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
-    }
-
-    /* Divider */
-    hr {
-        border-color: rgba(74, 111, 165, 0.2);
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Layout do tema para gráficos Plotly (dinâmico)
-PLOTLY_LAYOUT = dict(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-    title=dict(font=dict(color='#ffffff', size=18)),
-    xaxis=dict(
-        gridcolor='rgba(102, 126, 234, 0.1)',
-        linecolor='rgba(102, 126, 234, 0.2)',
-        tickfont=dict(color='#a0a0b0')
-    ),
-    yaxis=dict(
-        gridcolor='rgba(102, 126, 234, 0.1)',
-        linecolor='rgba(102, 126, 234, 0.2)',
-        tickfont=dict(color='#a0a0b0')
-    ),
-    legend=dict(
-        bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#a0a0b0')
-    ),
-    margin=dict(t=60, b=40, l=40, r=40)
-)
-
-# Cores premium
-COLORS = {
-    'primary': '#667eea',
-    'secondary': '#764ba2',
-    'success': '#4ade80',
-    'warning': '#fbbf24',
-    'danger': '#f87171',
-    'info': '#60a5fa',
-    'gradient': ['#667eea', '#764ba2', '#a855f7', '#ec4899']
-}
-
-BASE_PATH = Path(__file__).parent / "output"
 
 # Carrega dados atuais
 @st.cache_data(ttl=60)
@@ -502,18 +525,7 @@ unidade_selecionada = st.sidebar.selectbox("Unidade", unidades_lista)
 segmentos_lista = ["Todos"] + list(df_resumo_all["Segmento"].unique())
 segmento_selecionado = st.sidebar.selectbox("Segmento", segmentos_lista)
 
-# Filtro de Turno
-def extrair_turno(turma_nome):
-    turma_lower = turma_nome.lower()
-    if "manhã" in turma_lower or "manha" in turma_lower:
-        return "Manhã"
-    elif "tarde" in turma_lower:
-        return "Tarde"
-    elif "integral" in turma_lower:
-        return "Integral"
-    else:
-        return "Outro"
-
+# Filtro de Turno (usa função global extrair_turno)
 df_turmas_all["Turno"] = df_turmas_all["Turma"].apply(extrair_turno)
 turnos_lista = ["Todos"] + list(df_turmas_all["Turno"].unique())
 turno_selecionado = st.sidebar.selectbox("Turno", turnos_lista)
@@ -684,15 +696,8 @@ with col_left:
         hoverinfo='skip'
     ))
 
-    # Barra de ocupação - escala 6 cores
-    def cor_ocupacao(o):
-        if o >= 90: return '#065f46'    # Excelente (verde escuro) - 90-100%
-        elif o >= 80: return '#22c55e'  # Boa (verde) - 80-89%
-        elif o >= 70: return '#a3e635'  # Atenção (verde-amarelo) - 70-79%
-        elif o >= 50: return '#facc15'  # Risco (amarelo) - 50-69%
-        elif o >= 38: return '#f97316'  # Crítica (laranja) - 38-49%
-        else: return '#dc2626'          # Congelada (vermelho) - 0-37%
-    colors = [cor_ocupacao(o) for o in df_unidades['Ocupação']]
+    # Barra de ocupação - escala 6 cores (usa função global)
+    colors = [cor_ocupacao_6_niveis(o) for o in df_unidades['Ocupação']]
 
     fig1.add_trace(go.Bar(
         name='Ocupação',
@@ -783,108 +788,58 @@ with col_right:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===== METAS POR UNIDADE =====
-# Mapeamento por código da unidade (mais preciso)
-METAS_POR_CODIGO = {
-    "01-BV": 1250,   # Boa Viagem
-    "02-CD": 1200,   # Candeias (Jaboatão)
-    "03-JG": 850,    # Janga (Paulista)
-    "04-CDR": 800,   # Cordeiro
-}
-# Metas de NOVATOS por unidade (ajustado +20 JG/CDR, -20 BV/CD)
-METAS_NOVATOS = {
-    "01-BV": 285,    # Boa Viagem (-20)
-    "02-CD": 273,    # Candeias (-20)
-    "03-JG": 227,    # Janga (+20)
-    "04-CDR": 215,   # Cordeiro (+20)
-}
-META_NOVATOS = 1000
-META_TOTAL = 1250 + 1200 + 850 + 800  # 4100
-
 # ===== INSIGHTS EXECUTIVOS - CEO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>💡 Insights Executivos</h3>", unsafe_allow_html=True)
 
-# Calcula métricas por unidade com metas
+# Calcula métricas por unidade com metas (usa funções globais)
 df_perf_unidade = df_resumo_all.groupby('Unidade').agg({
     'Vagas': 'sum', 'Matriculados': 'sum', 'Novatos': 'sum', 'Veteranos': 'sum'
 }).reset_index()
 
-# Adiciona metas e calcula gaps
-def get_meta(unidade_nome):
-    # Usa código da unidade para precisão (valores de METAS_POR_CODIGO)
-    if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
-        return 1250
-    elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
-        return 1200
-    elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
-        return 850
-    elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
-        return 800
-    return 0
-
-def get_meta_novatos(unidade_nome):
-    # Meta de novatos por unidade (valores de METAS_NOVATOS)
-    if "01-BV" in unidade_nome or "Boa Viagem" in unidade_nome:
-        return 285
-    elif "02-CD" in unidade_nome or "Jaboatão" in unidade_nome or "Candeias" in unidade_nome:
-        return 273
-    elif "03-JG" in unidade_nome or "Paulista" in unidade_nome or "Janga" in unidade_nome:
-        return 227
-    elif "04-CDR" in unidade_nome or "Cordeiro" in unidade_nome:
-        return 215
-    return 0
-
-df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(get_meta)
+# Adiciona metas usando funções globais
+df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(lambda x: get_meta_unidade(x, 'matriculas'))
 df_perf_unidade['Gap'] = df_perf_unidade['Matriculados'] - df_perf_unidade['Meta']
 df_perf_unidade['Atingimento'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Meta'] * 100).round(1)
-df_perf_unidade['Ocupacao'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Vagas'] * 100).round(1)
-
-# Metas de novatos por unidade
-df_perf_unidade['Meta_Novatos'] = df_perf_unidade['Unidade'].apply(get_meta_novatos)
+df_perf_unidade['Ocupacao'] = df_perf_unidade.apply(lambda r: calcular_ocupacao(r['Matriculados'], r['Vagas']), axis=1)
+df_perf_unidade['Meta_Novatos'] = df_perf_unidade['Unidade'].apply(lambda x: get_meta_unidade(x, 'novatos'))
 df_perf_unidade['Gap_Novatos'] = df_perf_unidade['Novatos'] - df_perf_unidade['Meta_Novatos']
 df_perf_unidade['Ating_Novatos'] = (df_perf_unidade['Novatos'] / df_perf_unidade['Meta_Novatos'] * 100).round(1)
+df_perf_unidade['Nome_curto'] = df_perf_unidade['Unidade'].apply(extrair_nome_curto)
 
-# Extrai nome curto
-df_perf_unidade['Nome_curto'] = df_perf_unidade['Unidade'].apply(
-    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
-)
-
-# Calcula totais
-total_meta = META_TOTAL
-gap_total = total['matriculados'] - total_meta
-atingimento_total = (total['matriculados'] / total_meta * 100) if total_meta > 0 else 0
-
-gap_novatos = total['novatos'] - META_NOVATOS
-atingimento_novatos = (total['novatos'] / META_NOVATOS * 100) if META_NOVATOS > 0 else 0
+# Calcula totais (usa constantes globais)
+gap_total = total['matriculados'] - META_MATRICULAS_TOTAL
+atingimento_total = (total['matriculados'] / META_MATRICULAS_TOTAL * 100) if META_MATRICULAS_TOTAL > 0 else 0
+gap_novatos = total['novatos'] - META_NOVATOS_TOTAL
+atingimento_novatos = (total['novatos'] / META_NOVATOS_TOTAL * 100) if META_NOVATOS_TOTAL > 0 else 0
 
 # Linha 1 - Metas gerais
 col_meta1, col_meta2, col_meta3 = st.columns(3)
 
 with col_meta1:
-    cor_meta = '#10b981' if gap_total >= 0 else '#f59e0b' if atingimento_total >= 80 else '#ef4444'
+    cor_meta = cor_por_porcentagem(atingimento_total if gap_total >= 0 else atingimento_total, (100, 80))
     sinal = '+' if gap_total >= 0 else ''
     st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_meta};'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Matrículas ({total_meta:,})</p>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Matrículas ({META_MATRICULAS_TOTAL:,})</p>
         <p style='color: {cor_meta}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{atingimento_total:.1f}%</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal}{gap_total:,} alunos ({total['matriculados']:,}/{total_meta:,})</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal}{gap_total:,} alunos ({total['matriculados']:,}/{META_MATRICULAS_TOTAL:,})</p>
     </div>
     """.replace(",", "."), unsafe_allow_html=True)
 
 with col_meta2:
-    cor_novatos = '#10b981' if gap_novatos >= 0 else '#f59e0b' if atingimento_novatos >= 80 else '#ef4444'
+    cor_novatos = cor_por_porcentagem(atingimento_novatos if gap_novatos >= 0 else atingimento_novatos, (100, 80))
     sinal_nov = '+' if gap_novatos >= 0 else ''
     st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_novatos};'>
-        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Novatos ({META_NOVATOS:,})</p>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Meta Novatos ({META_NOVATOS_TOTAL:,})</p>
         <p style='color: {cor_novatos}; font-size: 1.8rem; font-weight: 700; margin: 0.3rem 0;'>{atingimento_novatos:.1f}%</p>
-        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal_nov}{gap_novatos:,} novatos ({total['novatos']:,}/{META_NOVATOS:,})</p>
+        <p style='color: #64748b; font-size: 0.75rem; margin: 0;'>{sinal_nov}{gap_novatos:,} novatos ({total['novatos']:,}/{META_NOVATOS_TOTAL:,})</p>
     </div>
     """.replace(",", "."), unsafe_allow_html=True)
 
 with col_meta3:
     taxa_retencao_geral = (total['veteranos'] / total['matriculados'] * 100) if total['matriculados'] > 0 else 0
-    cor_retencao = '#10b981' if taxa_retencao_geral >= 70 else '#f59e0b' if taxa_retencao_geral >= 50 else '#ef4444'
+    cor_retencao = cor_por_porcentagem(taxa_retencao_geral, (70, 50))
     st.markdown(f"""
     <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 1.2rem; border-radius: 12px; border-left: 4px solid {cor_retencao};'>
         <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>% Veteranos</p>
@@ -947,80 +902,19 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ===== TERMÔMETRO DE METAS POR UNIDADE =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🎯 Termômetro de Metas por Unidade</h3>", unsafe_allow_html=True)
 
-# Função para cor do termômetro de metas (escala 6 cores)
-def cor_meta(atingimento):
-    if atingimento >= 100: return '#065f46'   # Meta atingida (verde escuro)
-    elif atingimento >= 90: return '#22c55e'  # Quase lá (verde)
-    elif atingimento >= 80: return '#a3e635'  # Bom progresso (verde-amarelo)
-    elif atingimento >= 60: return '#facc15'  # Atenção (amarelo)
-    elif atingimento >= 40: return '#f97316'  # Risco (laranja)
-    else: return '#dc2626'                    # Crítico (vermelho)
-
-def status_meta(atingimento):
-    if atingimento >= 100: return 'Atingida'
-    elif atingimento >= 90: return 'Quase lá'
-    elif atingimento >= 80: return 'Bom'
-    elif atingimento >= 60: return 'Atenção'
-    elif atingimento >= 40: return 'Risco'
-    else: return 'Crítico'
-
-# Termômetros de Matrículas
+# Termômetros de Matrículas (usa função global gerar_termometro_html)
 st.markdown("<h4 style='color: #e2e8f0; font-weight: 500; margin-top: 10px;'>Meta de Matrículas</h4>", unsafe_allow_html=True)
 cols_meta_mat = st.columns(len(df_perf_unidade))
-
 for idx, (_, row) in enumerate(df_perf_unidade.iterrows()):
-    atingimento = row['Atingimento']
-    cor = cor_meta(atingimento)
-    status = status_meta(atingimento)
-    gap = int(row['Gap'])
-    sinal_gap = '+' if gap >= 0 else ''
-
     with cols_meta_mat[idx]:
-        st.markdown(f"""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{row['Nome_curto']}</div>
-            <div style='position: relative; width: 50px; height: 160px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
-                <div style='position: absolute; bottom: 0; width: 100%; height: {min(atingimento, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px; transition: height 0.5s;'></div>
-                <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
-                    <span style='font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{atingimento:.0f}%</span>
-                </div>
-            </div>
-            <div style='margin-top: 8px;'>
-                <span style='background: {cor}; color: {"white" if atingimento < 80 or atingimento >= 90 else "#1a1a2e"}; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;'>{status}</span>
-            </div>
-            <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(row['Matriculados'])} / {int(row['Meta'])}</div>
-            <div style='font-size: 10px; color: {cor}; font-weight: 600;'>Gap: {sinal_gap}{gap}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(gerar_termometro_html(row['Nome_curto'], row['Matriculados'], row['Meta']), unsafe_allow_html=True)
 
 # Termômetros de Novatos
 st.markdown("<h4 style='color: #e2e8f0; font-weight: 500; margin-top: 20px;'>Meta de Novatos</h4>", unsafe_allow_html=True)
 cols_meta_nov = st.columns(len(df_perf_unidade))
-
 for idx, (_, row) in enumerate(df_perf_unidade.iterrows()):
-    atingimento_nov = (row['Novatos'] / row['Meta_Novatos'] * 100) if row['Meta_Novatos'] > 0 else 0
-    cor = cor_meta(atingimento_nov)
-    status = status_meta(atingimento_nov)
-    gap_nov = int(row['Novatos'] - row['Meta_Novatos'])
-    sinal_gap = '+' if gap_nov >= 0 else ''
-
     with cols_meta_nov[idx]:
-        st.markdown(f"""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 14px; color: #e2e8f0; font-weight: 600; margin-bottom: 8px;'>{row['Nome_curto']}</div>
-            <div style='position: relative; width: 50px; height: 160px; margin: 0 auto; background: linear-gradient(to top, #1a1a2e 0%, #2d2d44 100%); border-radius: 25px; border: 2px solid #3d3d5c; overflow: hidden;'>
-                <div style='position: absolute; bottom: 0; width: 100%; height: {min(atingimento_nov, 100)}%; background: linear-gradient(to top, {cor}, {cor}dd); border-radius: 0 0 23px 23px; transition: height 0.5s;'></div>
-                <div style='position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;'>
-                    <span style='font-size: 16px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);'>{atingimento_nov:.0f}%</span>
-                </div>
-            </div>
-            <div style='margin-top: 8px;'>
-                <span style='background: {cor}; color: {"white" if atingimento_nov < 80 or atingimento_nov >= 90 else "#1a1a2e"}; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500;'>{status}</span>
-            </div>
-            <div style='font-size: 11px; color: #a0a0b0; margin-top: 5px;'>{int(row['Novatos'])} / {int(row['Meta_Novatos'])}</div>
-            <div style='font-size: 10px; color: {cor}; font-weight: 600;'>Gap: {sinal_gap}{gap_nov}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(gerar_termometro_html(row['Nome_curto'], row['Novatos'], row['Meta_Novatos']), unsafe_allow_html=True)
 
 # Legenda das metas
 st.markdown("""
@@ -1044,12 +938,10 @@ col_config1, col_config2 = st.columns([3, 1])
 with col_config2:
     qtd_alertas = st.selectbox("Exibir", [5, 10, 15, 20, "Todos"], index=0, key="qtd_alertas")
 
-# Turmas com ocupação calculada
+# Turmas com ocupação calculada (usa funções globais)
 turmas_criticas = df_turmas_all.copy()
-turmas_criticas['Ocupacao'] = (turmas_criticas['Matriculados'] / turmas_criticas['Vagas'] * 100).round(1)
-turmas_criticas['Unidade_curta'] = turmas_criticas['Unidade'].apply(
-    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
-)
+turmas_criticas['Ocupacao'] = turmas_criticas.apply(lambda r: calcular_ocupacao(r['Matriculados'], r['Vagas']), axis=1)
+turmas_criticas['Unidade_curta'] = turmas_criticas['Unidade'].apply(extrair_nome_curto)
 
 # Tabs por unidade
 unidades_unicas = sorted(turmas_criticas['Unidade_curta'].unique())
@@ -1320,48 +1212,7 @@ if dados_2025_path.exists() and dados_2026_path.exists():
     with open(dados_2026_path, "r", encoding="utf-8") as f:
         dados_2026_full = json.load(f)
 
-    # Função para extrair série do nome da turma
-    def extrair_serie(turma_nome):
-        turma_lower = turma_nome.lower()
-        # Educação Infantil (ordem V->IV->III->II para evitar substring match)
-        if "infantil v" in turma_lower or "infantil 5" in turma_lower:
-            return "Infantil V"
-        elif "infantil iv" in turma_lower or "infantil 4" in turma_lower:
-            return "Infantil IV"
-        elif "infantil iii" in turma_lower or "infantil 3" in turma_lower:
-            return "Infantil III"
-        elif "infantil ii" in turma_lower or "infantil 2" in turma_lower:
-            return "Infantil II"
-        # Fundamental I
-        elif "1º ano" in turma_lower or "1° ano" in turma_lower or "primeiro ano" in turma_lower:
-            return "1º ano"
-        elif "2º ano" in turma_lower or "2° ano" in turma_lower or "segundo ano" in turma_lower:
-            return "2º ano"
-        elif "3º ano" in turma_lower or "3° ano" in turma_lower or "terceiro ano" in turma_lower:
-            return "3º ano"
-        elif "4º ano" in turma_lower or "4° ano" in turma_lower or "quarto ano" in turma_lower:
-            return "4º ano"
-        elif "5º ano" in turma_lower or "5° ano" in turma_lower or "quinto ano" in turma_lower:
-            return "5º ano"
-        # Fundamental II
-        elif "6º ano" in turma_lower or "6° ano" in turma_lower or "sexto ano" in turma_lower:
-            return "6º ano"
-        elif "7º ano" in turma_lower or "7° ano" in turma_lower or "sétimo ano" in turma_lower:
-            return "7º ano"
-        elif "8º ano" in turma_lower or "8° ano" in turma_lower or "oitavo ano" in turma_lower:
-            return "8º ano"
-        elif "9º ano" in turma_lower or "9° ano" in turma_lower or "nono ano" in turma_lower:
-            return "9º ano"
-        # Ensino Médio
-        elif "1ª série" in turma_lower or "1a série" in turma_lower or "primeira série" in turma_lower:
-            return "1ª série EM"
-        elif "2ª série" in turma_lower or "2a série" in turma_lower or "segunda série" in turma_lower:
-            return "2ª série EM"
-        elif "3ª série" in turma_lower or "3a série" in turma_lower or "terceira série" in turma_lower:
-            return "3ª série EM"
-        return None
-
-    # Mapeamento de progressão: série atual -> série anterior
+    # Mapeamento de progressão: série atual -> série anterior (usa extrair_serie global)
     PROGRESSAO = {
         "Infantil III": "Infantil II",
         "Infantil IV": "Infantil III",
