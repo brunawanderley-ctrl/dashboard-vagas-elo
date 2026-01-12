@@ -1837,10 +1837,19 @@ elif ordenacao == "Disponíveis (maior)":
 
 # Reorganiza colunas para exibição
 colunas_exibir = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matriculados', 'Ocupação %', 'Novatos', 'Veteranos', 'Disponiveis', 'Pre-matriculados']
+
+# Verifica se todas as colunas existem
+colunas_disponiveis = [col for col in colunas_exibir if col in df_det.columns]
+if len(colunas_disponiveis) != len(colunas_exibir):
+    # Adiciona colunas faltantes com valor 0
+    for col in colunas_exibir:
+        if col not in df_det.columns:
+            df_det[col] = 0
+
 df_exibir = df_det[colunas_exibir].copy()
 
 # Extrai nome curto da unidade
-df_exibir['Unidade'] = df_exibir['Unidade'].apply(lambda x: x.split('(')[1].replace(')', '') if '(' in x else x)
+df_exibir['Unidade'] = df_exibir['Unidade'].apply(lambda x: x.split('(')[1].replace(')', '') if '(' in str(x) else str(x))
 df_exibir.columns = ['Unidade', 'Segmento', 'Turma', 'Turno', 'Vagas', 'Matr.', 'Ocup.', 'Nov.', 'Vet.', 'Disp.', 'Pré']
 
 # Função para cor da barra de ocupação (mesma escala do termômetro)
@@ -1873,34 +1882,46 @@ def criar_barra_html(ocupacao):
 
 # Gera HTML da tabela
 html_rows = []
-for _, row in df_exibir.iterrows():
-    try:
-        ocupacao_val = float(row['Ocup.']) if pd.notna(row['Ocup.']) else 0
-        vagas_val = int(row['Vagas']) if pd.notna(row['Vagas']) else 0
-        matr_val = int(row['Matr.']) if pd.notna(row['Matr.']) else 0
-        nov_val = int(row['Nov.']) if pd.notna(row['Nov.']) else 0
-        vet_val = int(row['Vet.']) if pd.notna(row['Vet.']) else 0
-        disp_val = int(row['Disp.']) if pd.notna(row['Disp.']) else 0
-        pre_val = int(row['Pré']) if pd.notna(row['Pré']) else 0
+if len(df_exibir) > 0:
+    for idx, row in df_exibir.iterrows():
+        try:
+            # Extrai valores com tratamento seguro
+            ocupacao_val = 0
+            try:
+                ocupacao_val = float(row['Ocup.']) if pd.notna(row['Ocup.']) else 0
+            except:
+                pass
 
-        barra_html = criar_barra_html(ocupacao_val)
-        html_rows.append(f'''
-        <tr>
-            <td>{row['Unidade']}</td>
-            <td>{row['Segmento']}</td>
-            <td>{row['Turma']}</td>
-            <td>{row['Turno']}</td>
-            <td style="text-align: center;">{vagas_val}</td>
-            <td style="text-align: center;">{matr_val}</td>
-            <td style="min-width: 150px;">{barra_html}</td>
-            <td style="text-align: center;">{nov_val}</td>
-            <td style="text-align: center;">{vet_val}</td>
-            <td style="text-align: center;">{disp_val}</td>
-            <td style="text-align: center;">{pre_val}</td>
-        </tr>
-        ''')
-    except Exception as e:
-        continue  # Pula linha com erro
+            vagas_val = int(float(row['Vagas'])) if pd.notna(row['Vagas']) else 0
+            matr_val = int(float(row['Matr.'])) if pd.notna(row['Matr.']) else 0
+            nov_val = int(float(row['Nov.'])) if pd.notna(row['Nov.']) else 0
+            vet_val = int(float(row['Vet.'])) if pd.notna(row['Vet.']) else 0
+            disp_val = int(float(row['Disp.'])) if pd.notna(row['Disp.']) else 0
+            pre_val = int(float(row['Pré'])) if pd.notna(row['Pré']) else 0
+
+            unidade_str = str(row['Unidade']) if pd.notna(row['Unidade']) else '-'
+            segmento_str = str(row['Segmento']) if pd.notna(row['Segmento']) else '-'
+            turma_str = str(row['Turma']) if pd.notna(row['Turma']) else '-'
+            turno_str = str(row['Turno']) if pd.notna(row['Turno']) else '-'
+
+            barra_html = criar_barra_html(ocupacao_val)
+            html_rows.append(f'''
+            <tr>
+                <td>{unidade_str}</td>
+                <td>{segmento_str}</td>
+                <td>{turma_str}</td>
+                <td>{turno_str}</td>
+                <td style="text-align: center;">{vagas_val}</td>
+                <td style="text-align: center;">{matr_val}</td>
+                <td style="min-width: 150px;">{barra_html}</td>
+                <td style="text-align: center;">{nov_val}</td>
+                <td style="text-align: center;">{vet_val}</td>
+                <td style="text-align: center;">{disp_val}</td>
+                <td style="text-align: center;">{pre_val}</td>
+            </tr>
+            ''')
+        except Exception as e:
+            continue  # Pula linha com erro
 
 html_table = f'''
 <div style="max-height: 450px; overflow-y: auto; border-radius: 8px; border: 1px solid #3d3d5c;">
@@ -1933,9 +1954,11 @@ html_table = f'''
 </style>
 '''
 
-st.markdown(html_table, unsafe_allow_html=True)
-
-st.caption(f"Exibindo {len(df_exibir)} turmas • Filtros aplicados: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
+if len(html_rows) > 0:
+    st.markdown(html_table, unsafe_allow_html=True)
+    st.caption(f"Exibindo {len(html_rows)} turmas • Filtros aplicados: {filtro_unidade_det} | {filtro_segmento_det} | {filtro_turno_det}")
+else:
+    st.info("Nenhuma turma encontrada com os filtros selecionados.")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
