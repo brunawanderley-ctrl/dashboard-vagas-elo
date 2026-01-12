@@ -1,0 +1,177 @@
+{
+  "data_extracao": "2026-01-11T16:50:06.503709",
+  "periodo": "2026",
+  "unidades": [
+    {
+      "codigo": "01-BV",
+      "nome": "1 - BV (Boa Viagem)",
+      "segmentos": {
+        "Ed. Infantil": {
+          "vagas": 245,
+          "novatos": 25,
+          "veteranos": 56,
+          "matriculados": 81,
+          "disponiveis": 101
+        },
+        "Fund. I": {
+          "vagas": 545,
+          "novatos": 43,
+          "veteranos": 183,
+          "matriculados": 226,
+          "disponiveis": 130
+        },
+        "Fund. II": {
+          "vagas": 561,
+          "novatos": 58,
+          "veteranos": 208,
+          "matriculados": 266,
+          "disponiveis": 122
+        },
+        "Ens. Médio": {
+          "vagas": 325,
+          "novatos": 23,
+          "veteranos": 146,
+          "matriculados": 169,
+          "disponiveis": 3
+        }
+      },
+      "total": {
+        "vagas": 1676,
+        "novatos": 149,
+        "veteranos": 593,
+        "matriculados": 742,
+        "disponiveis": 356
+      }
+    },
+    {
+      "codigo": "02-CD",
+      "nome": "2 - CD (Jaboatão)",
+      "segmentos": {
+        "Ed. Infantil": {
+          "vagas": 150,
+          "novatos": 33,
+          "veteranos": 41,
+          "matriculados": 74,
+          "disponiveis": 33
+        },
+        "Fund. I": {
+          "vagas": 465,
+          "novatos": 61,
+          "veteranos": 140,
+          "matriculados": 201,
+          "disponiveis": 101
+        },
+        "Fund. II": {
+          "vagas": 619,
+          "novatos": 53,
+          "veteranos": 226,
+          "matriculados": 279,
+          "disponiveis": 170
+        },
+        "Ens. Médio": {
+          "vagas": 395,
+          "novatos": 36,
+          "veteranos": 176,
+          "matriculados": 212,
+          "disponiveis": 21
+        }
+      },
+      "total": {
+        "vagas": 1629,
+        "novatos": 183,
+        "veteranos": 583,
+        "matriculados": 766,
+        "disponiveis": 325
+      }
+    },
+    {
+      "codigo": "03-JG",
+      "nome": "3 - JG (Paulista)",
+      "segmentos": {
+        "Ed. Infantil": {
+          "vagas": 178,
+          "novatos": 26,
+          "veteranos": 52,
+          "matriculados": 78,
+          "disponiveis": 73
+        },
+        "Fund. I": {
+          "vagas": 375,
+          "novatos": 32,
+          "veteranos": 132,
+          "matriculados": 164,
+          "disponiveis": 109
+        },
+        "Fund. II": {
+          "vagas": 520,
+          "novatos": 50,
+          "veteranos": 176,
+          "matriculados": 226,
+          "disponiveis": 134
+        },
+        "Ens. Médio": {
+          "vagas": 255,
+          "novatos": 39,
+          "veteranos": 78,
+          "matriculados": 117,
+          "disponiveis": 83
+        }
+      },
+      "total": {
+        "vagas": 1328,
+        "novatos": 147,
+        "veteranos": 438,
+        "matriculados": 585,
+        "disponiveis": 399
+      }
+    },
+    {
+      "codigo": "04-CDR",
+      "nome": "4 - CDR (Cordeiro)",
+      "segmentos": {
+        "Ed. Infantil": {
+          "vagas": 230,
+          "novatos": 25,
+          "veteranos": 46,
+          "matriculados": 71,
+          "disponiveis": 144
+        },
+        "Fund. I": {
+          "vagas": 465,
+          "novatos": 64,
+          "veteranos": 141,
+          "matriculados": 205,
+          "disponiveis": 205
+        },
+        "Fund. II": {
+          "vagas": 440,
+          "novatos": 77,
+          "veteranos": 142,
+          "matriculados": 219,
+          "disponiveis": 117
+        },
+        "Ens. Médio": {
+          "vagas": 146,
+          "novatos": 29,
+          "veteranos": 50,
+          "matriculados": 79,
+          "disponiveis": 11
+        }
+      },
+      "total": {
+        "vagas": 1281,
+        "novatos": 195,
+        "veteranos": 379,
+        "matriculados": 574,
+        "disponiveis": 477
+      }
+    }
+  ],
+  "total_geral": {
+    "vagas": 5914,
+    "novatos": 674,
+    "veteranos": 1993,
+    "matriculados": 2667,
+    "disponiveis": 1557
+  }
+}
