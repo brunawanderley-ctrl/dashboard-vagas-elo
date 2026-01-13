@@ -691,6 +691,70 @@ with col6:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# Quadro de Quantidade de Turmas
+st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📚 Quantidade de Turmas por Unidade</h3>", unsafe_allow_html=True)
+
+# Calcula quantidade de turmas por unidade
+df_turmas_count = df_turmas_all.groupby('Unidade').agg({
+    'Turma': 'count',
+    'Vagas': 'sum',
+    'Matriculados': 'sum'
+}).reset_index()
+df_turmas_count.columns = ['Unidade', 'Total Turmas', 'Vagas', 'Matriculados']
+df_turmas_count['Nome_curto'] = df_turmas_count['Unidade'].apply(extrair_nome_curto)
+
+# Cards com totais por unidade
+cols_turmas = st.columns(len(df_turmas_count))
+for idx, (_, row) in enumerate(df_turmas_count.iterrows()):
+    with cols_turmas[idx]:
+        st.markdown(f"""
+        <div style='background: linear-gradient(145deg, #1e1e30 0%, #252540 100%);
+                    border: 1px solid rgba(102, 126, 234, 0.3);
+                    border-radius: 12px; padding: 1rem; text-align: center;'>
+            <p style='color: #a0a0b0; font-size: 0.8rem; margin: 0;'>{row['Nome_curto']}</p>
+            <p style='color: #667eea; font-size: 2rem; font-weight: 700; margin: 0.3rem 0;'>{int(row['Total Turmas'])}</p>
+            <p style='color: #64748b; font-size: 0.7rem; margin: 0;'>turmas</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# Total geral de turmas
+total_turmas = df_turmas_count['Total Turmas'].sum()
+st.markdown(f"<p style='color: #94a3b8; text-align: center; margin-top: 0.5rem;'>Total: <strong style='color: #f1f5f9;'>{int(total_turmas)} turmas</strong></p>", unsafe_allow_html=True)
+
+# Detalhamento expandível
+with st.expander("📋 Ver detalhamento por segmento e turno"):
+    # Agrupa por unidade, segmento e turno
+    df_detail = df_turmas_all.groupby(['Unidade', 'Segmento', 'Turno']).agg({
+        'Turma': 'count',
+        'Vagas': 'sum',
+        'Matriculados': 'sum'
+    }).reset_index()
+    df_detail.columns = ['Unidade', 'Segmento', 'Turno', 'Qtd Turmas', 'Vagas', 'Matriculados']
+    df_detail['Unidade'] = df_detail['Unidade'].apply(extrair_nome_curto)
+    df_detail['Ocupação %'] = (df_detail['Matriculados'] / df_detail['Vagas'] * 100).round(1)
+
+    # Ordena por unidade e segmento
+    ordem_seg = {'Ed. Infantil': 1, 'Fund. 1': 2, 'Fund. 2': 3, 'Ens. Médio': 4}
+    df_detail['ordem_seg'] = df_detail['Segmento'].map(ordem_seg).fillna(5)
+    df_detail = df_detail.sort_values(['Unidade', 'ordem_seg', 'Turno'])
+    df_detail = df_detail.drop('ordem_seg', axis=1)
+
+    st.dataframe(
+        df_detail,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Ocupação %": st.column_config.ProgressColumn(
+                "Ocupação %",
+                format="%.1f%%",
+                min_value=0,
+                max_value=100,
+            ),
+        }
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # Gráficos principais
 col_left, col_right = st.columns(2)
 
