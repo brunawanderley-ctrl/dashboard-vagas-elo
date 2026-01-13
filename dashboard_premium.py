@@ -874,44 +874,33 @@ else:
 
 ocupacao = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vagas'] > 0 else 0
 
-col1, col2, col3, col4, col5 = st.columns(5)
+# Cards visuais para métricas principais
+cor_ocupacao = '#22c55e' if ocupacao >= 80 else '#facc15' if ocupacao >= 60 else '#f97316' if ocupacao >= 40 else '#dc2626'
 
-with col1:
-    st.metric("OCUPAÇÃO", f"{ocupacao:.1f}%")
-with col2:
-    st.metric("MATRÍCULAS", f"{total['matriculados']:,}".replace(",", "."))
-with col3:
-    st.metric("VAGAS", f"{total['vagas']:,}".replace(",", "."))
-with col4:
-    st.metric("NOVATOS", f"{total['novatos']:,}".replace(",", "."))
-with col5:
-    st.metric("DISPONÍVEIS", f"{total['disponiveis']:,}".replace(",", "."))
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Quadro de Quantidade de Turmas
-st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📚 Quantidade de Turmas por Unidade</h3>", unsafe_allow_html=True)
-
-# Calcula quantidade de turmas por unidade (cached)
-df_turmas_count = criar_df_turmas_count(vagas_str)
-
-# Cards com totais por unidade
-cols_turmas = st.columns(len(df_turmas_count))
-for idx, (_, row) in enumerate(df_turmas_count.iterrows()):
-    with cols_turmas[idx]:
-        st.markdown(f"""
-        <div style='background: linear-gradient(145deg, #1e1e30 0%, #252540 100%);
-                    border: 1px solid rgba(102, 126, 234, 0.3);
-                    border-radius: 12px; padding: 1rem; text-align: center;'>
-            <p style='color: #a0a0b0; font-size: 0.8rem; margin: 0;'>{row['Nome_curto']}</p>
-            <p style='color: #667eea; font-size: 2rem; font-weight: 700; margin: 0.3rem 0;'>{int(row['Total Turmas'])}</p>
-            <p style='color: #64748b; font-size: 0.7rem; margin: 0;'>turmas</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-# Total geral de turmas
-total_turmas = df_turmas_count['Total Turmas'].sum()
-st.markdown(f"<p style='color: #94a3b8; text-align: center; margin-top: 0.5rem;'>Total: <strong style='color: #f1f5f9;'>{int(total_turmas)} turmas</strong></p>", unsafe_allow_html=True)
+st.markdown(f"""
+<div style='display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;'>
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 20px 30px; border-radius: 12px; text-align: center; min-width: 140px; border-left: 4px solid {cor_ocupacao};'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Ocupação</p>
+        <p style='color: {cor_ocupacao}; font-size: 2rem; font-weight: 700; margin: 5px 0;'>{ocupacao:.1f}%</p>
+    </div>
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 20px 30px; border-radius: 12px; text-align: center; min-width: 140px; border-left: 4px solid #667eea;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Matrículas</p>
+        <p style='color: #e2e8f0; font-size: 2rem; font-weight: 700; margin: 5px 0;'>{total['matriculados']:,}</p>
+    </div>
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 20px 30px; border-radius: 12px; text-align: center; min-width: 140px; border-left: 4px solid #8b5cf6;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Vagas</p>
+        <p style='color: #e2e8f0; font-size: 2rem; font-weight: 700; margin: 5px 0;'>{total['vagas']:,}</p>
+    </div>
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 20px 30px; border-radius: 12px; text-align: center; min-width: 140px; border-left: 4px solid #06b6d4;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Novatos</p>
+        <p style='color: #e2e8f0; font-size: 2rem; font-weight: 700; margin: 5px 0;'>{total['novatos']:,}</p>
+    </div>
+    <div style='background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 20px 30px; border-radius: 12px; text-align: center; min-width: 140px; border-left: 4px solid #ec4899;'>
+        <p style='color: #94a3b8; font-size: 0.75rem; margin: 0; text-transform: uppercase;'>Disponíveis</p>
+        <p style='color: #e2e8f0; font-size: 2rem; font-weight: 700; margin: 5px 0;'>{total['disponiveis']:,}</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1827,6 +1816,102 @@ st.markdown("<h4 style='color: #e2e8f0; font-weight: 600;'>Detalhamento por Turm
 
 # Adiciona coluna Série para filtro
 df_relatorio['Série'] = df_relatorio['Turma'].apply(extrair_serie)
+
+# ===== RESUMO: QUANTIDADE DE TURMAS =====
+# Por Unidade
+turmas_por_unidade = df_relatorio.groupby('Unidade')['Turma'].nunique().reset_index()
+turmas_por_unidade.columns = ['Unidade', 'Qtd Turmas']
+turmas_por_unidade['Unidade'] = turmas_por_unidade['Unidade'].apply(
+    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
+)
+
+# Por Segmento
+turmas_por_segmento = df_relatorio.groupby('Segmento')['Turma'].nunique().reset_index()
+turmas_por_segmento.columns = ['Segmento', 'Qtd Turmas']
+
+# Por Série
+turmas_por_serie = df_relatorio.groupby('Série')['Turma'].nunique().reset_index()
+turmas_por_serie.columns = ['Série', 'Qtd Turmas']
+turmas_por_serie = turmas_por_serie.sort_values('Série')
+
+# Total de turmas
+total_turmas = df_relatorio['Turma'].nunique()
+
+# ===== RESUMO COMPACTO DE TURMAS =====
+st.markdown(f"""
+<div style='background: rgba(30, 41, 59, 0.4); padding: 12px 15px; border-radius: 8px; margin-bottom: 10px;'>
+    <span style='color: #94a3b8; font-size: 0.8rem;'>📚 Turmas:</span>
+    <span style='color: #e2e8f0; font-size: 0.8rem; margin-left: 10px;'>
+        <b>Por Unidade</b> → {' | '.join([f"{row['Unidade']}: {row['Qtd Turmas']}" for _, row in turmas_por_unidade.iterrows()])}
+    </span>
+    <span style='color: #667eea; margin: 0 8px;'>•</span>
+    <span style='color: #22c55e; font-size: 0.85rem; font-weight: 600;'>Total: {total_turmas}</span>
+</div>
+""", unsafe_allow_html=True)
+
+# ===== TABELA RESUMO POR SEGMENTO =====
+st.markdown("<p style='color: #e2e8f0; font-size: 0.9rem; font-weight: 600; margin: 10px 0 5px 0;'>Resumo por Segmento</p>", unsafe_allow_html=True)
+
+# Filtros para o resumo
+col_filtro_res1, col_filtro_res2 = st.columns(2)
+
+with col_filtro_res1:
+    opcoes_unidade_res = ["Todas", "Boa Viagem", "Cordeiro", "Paulista", "Jaboatão"]
+    filtro_unidade_res = st.selectbox("Unidade", opcoes_unidade_res, key="filtro_unidade_resumo")
+
+with col_filtro_res2:
+    opcoes_seg_res = ["Todos"] + sorted(df_relatorio['Segmento'].unique().tolist())
+    filtro_seg_res = st.selectbox("Segmento", opcoes_seg_res, key="filtro_seg_resumo")
+
+# Aplica filtros
+df_resumo_filtro = df_relatorio.copy()
+
+if filtro_unidade_res != "Todas":
+    df_resumo_filtro = df_resumo_filtro[df_resumo_filtro['Unidade'].str.contains(filtro_unidade_res, case=False)]
+
+if filtro_seg_res != "Todos":
+    df_resumo_filtro = df_resumo_filtro[df_resumo_filtro['Segmento'] == filtro_seg_res]
+
+# Agrupa dados por segmento
+df_resumo_seg = df_resumo_filtro.groupby('Segmento').agg({
+    'Turma': 'nunique',
+    'Vagas': 'sum',
+    'Matriculados': 'sum',
+    'Novatos': 'sum',
+    'Veteranos': 'sum',
+    'Disponiveis': 'sum'
+}).reset_index()
+df_resumo_seg.columns = ['Segmento', 'Turmas', 'Vagas', 'Matr.', 'Nov.', 'Vet.', 'Disp.']
+df_resumo_seg['Ocup.'] = (df_resumo_seg['Matr.'] / df_resumo_seg['Vagas'] * 100).round(1)
+df_resumo_seg = df_resumo_seg[['Segmento', 'Turmas', 'Vagas', 'Matr.', 'Nov.', 'Vet.', 'Disp.', 'Ocup.']]
+df_resumo_seg = df_resumo_seg.sort_values('Ocup.', ascending=False)
+
+# Adiciona linha de TOTAL
+total_row = pd.DataFrame([{
+    'Segmento': 'TOTAL',
+    'Turmas': df_resumo_seg['Turmas'].sum(),
+    'Vagas': df_resumo_seg['Vagas'].sum(),
+    'Matr.': df_resumo_seg['Matr.'].sum(),
+    'Nov.': df_resumo_seg['Nov.'].sum(),
+    'Vet.': df_resumo_seg['Vet.'].sum(),
+    'Disp.': df_resumo_seg['Disp.'].sum(),
+    'Ocup.': round(df_resumo_seg['Matr.'].sum() / df_resumo_seg['Vagas'].sum() * 100, 1) if df_resumo_seg['Vagas'].sum() > 0 else 0
+}])
+df_resumo_seg = pd.concat([df_resumo_seg, total_row], ignore_index=True)
+
+st.dataframe(
+    df_resumo_seg,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Ocup.": st.column_config.NumberColumn(
+            "Ocup. %",
+            format="%.1f%%",
+        ),
+    }
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 # Filtros inline para o detalhamento
 col_filtro1, col_filtro2, col_filtro3, col_filtro4, col_filtro5 = st.columns(5)
