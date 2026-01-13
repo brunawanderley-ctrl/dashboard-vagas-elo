@@ -181,6 +181,199 @@ def gerar_termometro_html(nome, valor_atual, meta, tipo='matriculas'):
     </div>
     """
 
+# ===== FUNÇÕES DE GRÁFICOS CACHEADAS =====
+@st.cache_data(ttl=300)
+def criar_grafico_ocupacao_unidade(_resumo_str):
+    """Cria gráfico de ocupação por unidade (cached)"""
+    resumo = json.loads(_resumo_str)
+    df_unidades = pd.DataFrame([
+        {
+            'Unidade': u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome'],
+            'Ocupação': round(u['total']['matriculados'] / u['total']['vagas'] * 100, 1),
+            'Matriculados': u['total']['matriculados'],
+            'Vagas': u['total']['vagas']
+        }
+        for u in resumo['unidades']
+    ])
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name='Capacidade',
+        x=df_unidades['Unidade'],
+        y=[100] * len(df_unidades),
+        marker_color='rgba(102, 126, 234, 0.15)',
+        hoverinfo='skip'
+    ))
+
+    colors = [cor_ocupacao_6_niveis(o) for o in df_unidades['Ocupação']]
+    fig.add_trace(go.Bar(
+        name='Ocupação',
+        x=df_unidades['Unidade'],
+        y=df_unidades['Ocupação'],
+        marker_color=colors,
+        text=[f"{o:.1f}%<br>({int(m)})" for o, m in zip(df_unidades['Ocupação'], df_unidades['Matriculados'])],
+        textposition='outside',
+        textfont=dict(color='#ffffff', size=12, family='Inter')
+    ))
+
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        barmode='overlay',
+        showlegend=False,
+        height=380,
+        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 120], title=''),
+        xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
+    )
+    return fig
+
+@st.cache_data(ttl=300)
+def criar_grafico_segmentos(_resumo_str):
+    """Cria gráfico de distribuição por segmento (cached)"""
+    resumo = json.loads(_resumo_str)
+    segmentos_total = {}
+    for unidade in resumo['unidades']:
+        for seg, vals in unidade['segmentos'].items():
+            if seg not in segmentos_total:
+                segmentos_total[seg] = {'matriculados': 0, 'vagas': 0}
+            segmentos_total[seg]['matriculados'] += vals['matriculados']
+            segmentos_total[seg]['vagas'] += vals['vagas']
+
+    df_seg = pd.DataFrame([
+        {'Segmento': seg, 'Matriculados': v['matriculados'], 'Vagas': v['vagas']}
+        for seg, v in segmentos_total.items()
+    ])
+
+    ordem = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
+    df_seg['ordem'] = df_seg['Segmento'].map({s: i for i, s in enumerate(ordem)})
+    df_seg = df_seg.sort_values('ordem')
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name='Vagas',
+        x=df_seg['Segmento'],
+        y=df_seg['Vagas'],
+        marker_color='rgba(102, 126, 234, 0.3)',
+        text=df_seg['Vagas'],
+        textposition='outside',
+        textfont=dict(color='#a0a0b0')
+    ))
+    fig.add_trace(go.Bar(
+        name='Matriculados',
+        x=df_seg['Segmento'],
+        y=df_seg['Matriculados'],
+        marker_color='#667eea',
+        text=df_seg['Matriculados'],
+        textposition='outside',
+        textfont=dict(color='#ffffff')
+    ))
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        barmode='group',
+        showlegend=True,
+        legend=dict(orientation='h', y=-0.15, x=0.5, xanchor='center'),
+        height=380,
+        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title=''),
+        xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
+    )
+    return fig
+
+@st.cache_data(ttl=300)
+def criar_heatmap_ocupacao(_resumo_str):
+    """Cria heatmap de ocupação (cached)"""
+    resumo = json.loads(_resumo_str)
+    ordem_seg = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
+
+    matriz = []
+    unidades = []
+    for unidade in resumo['unidades']:
+        nome_curto = unidade['nome'].split('(')[1].replace(')', '') if '(' in unidade['nome'] else unidade['nome']
+        unidades.append(nome_curto)
+        row = []
+        for seg in ordem_seg:
+            if seg in unidade['segmentos']:
+                dados = unidade['segmentos'][seg]
+                ocup = round(dados['matriculados'] / dados['vagas'] * 100, 1) if dados['vagas'] > 0 else 0
+            else:
+                ocup = 0
+            row.append(ocup)
+        matriz.append(row)
+
+    fig = go.Figure(data=go.Heatmap(
+        z=matriz,
+        x=ordem_seg,
+        y=unidades,
+        colorscale=[
+            [0, '#dc2626'], [0.38, '#f97316'], [0.5, '#facc15'],
+            [0.7, '#a3e635'], [0.8, '#22c55e'], [1, '#065f46']
+        ],
+        hovertemplate='Unidade: %{y}<br>Segmento: %{x}<br>Ocupação: %{z:.1f}%<extra></extra>',
+        colorbar=dict(
+            title=dict(text='Ocupação %', font=dict(color='#a0a0b0')),
+            tickfont=dict(color='#a0a0b0')
+        )
+    ))
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
+        height=350,
+        xaxis=dict(side='bottom'),
+        yaxis=dict(autorange='reversed')
+    )
+    return fig
+
+@st.cache_data(ttl=300)
+def criar_df_turmas_count(_vagas_str):
+    """Cria DataFrame com contagem de turmas por unidade (cached)"""
+    df = criar_df_turmas(_vagas_str)
+    result = df.groupby('Unidade').agg({
+        'Turma': 'count',
+        'Vagas': 'sum',
+        'Matriculados': 'sum'
+    }).reset_index()
+    result.columns = ['Unidade', 'Total Turmas', 'Vagas', 'Matriculados']
+    result['Nome_curto'] = result['Unidade'].apply(extrair_nome_curto)
+    return result
+
+@st.cache_data(ttl=300)
+def criar_df_turmas_detail(_vagas_str):
+    """Cria DataFrame com detalhamento de turmas (cached)"""
+    df = criar_df_turmas(_vagas_str)
+    df['Turno'] = df['Turma'].apply(extrair_turno)
+    result = df.groupby(['Unidade', 'Segmento', 'Turno']).agg({
+        'Turma': 'count',
+        'Vagas': 'sum',
+        'Matriculados': 'sum'
+    }).reset_index()
+    result.columns = ['Unidade', 'Segmento', 'Turno', 'Qtd Turmas', 'Vagas', 'Matriculados']
+    result['Unidade'] = result['Unidade'].apply(extrair_nome_curto)
+    result['Ocupação %'] = (result['Matriculados'] / result['Vagas'] * 100).round(1)
+    ordem_seg = {'Ed. Infantil': 1, 'Fund. 1': 2, 'Fund. 2': 3, 'Ens. Médio': 4}
+    result['ordem_seg'] = result['Segmento'].map(ordem_seg).fillna(5)
+    result = result.sort_values(['Unidade', 'ordem_seg', 'Turno'])
+    return result
+
+@st.cache_data(ttl=300)
+def criar_df_perf_unidade(_resumo_str):
+    """Cria DataFrame com performance por unidade (cached)"""
+    df = criar_df_resumo(_resumo_str)
+    result = df.groupby('Unidade').agg({
+        'Vagas': 'sum', 'Matriculados': 'sum', 'Novatos': 'sum', 'Veteranos': 'sum'
+    }).reset_index()
+    result['Meta'] = result['Unidade'].apply(lambda x: get_meta_unidade(x, 'matriculas'))
+    result['Gap'] = result['Matriculados'] - result['Meta']
+    result['Atingimento'] = (result['Matriculados'] / result['Meta'] * 100).round(1)
+    result['Ocupacao'] = result.apply(lambda r: calcular_ocupacao(r['Matriculados'], r['Vagas']), axis=1)
+    result['Meta_Novatos'] = result['Unidade'].apply(lambda x: get_meta_unidade(x, 'novatos'))
+    result['Gap_Novatos'] = result['Novatos'] - result['Meta_Novatos']
+    result['Ating_Novatos'] = (result['Novatos'] / result['Meta_Novatos'] * 100).round(1)
+    result['Nome_curto'] = result['Unidade'].apply(extrair_nome_curto)
+    return result
+
 # ===== CONFIGURAÇÃO DA PÁGINA =====
 st.set_page_config(
     page_title="Vagas Colégio Elo",
@@ -417,8 +610,10 @@ def carregar_historico():
 
     return df_unidades, df_total, df_segmento, num_extracoes
 
-def criar_df_turmas(vagas_data):
-    """Cria DataFrame com todas as turmas"""
+@st.cache_data(ttl=300)
+def criar_df_turmas(_vagas_data_str):
+    """Cria DataFrame com todas as turmas (cached)"""
+    vagas_data = json.loads(_vagas_data_str)
     rows = []
     for unidade in vagas_data["unidades"]:
         for turma in unidade.get("turmas", []):
@@ -435,8 +630,10 @@ def criar_df_turmas(vagas_data):
             })
     return pd.DataFrame(rows)
 
-def criar_df_resumo(resumo_data):
-    """Cria DataFrame com resumo por unidade/segmento"""
+@st.cache_data(ttl=300)
+def criar_df_resumo(_resumo_data_str):
+    """Cria DataFrame com resumo por unidade/segmento (cached)"""
+    resumo_data = json.loads(_resumo_data_str)
     rows = []
     for unidade in resumo_data["unidades"]:
         for segmento, dados in unidade["segmentos"].items():
@@ -525,8 +722,11 @@ def gerar_relatorio_pdf(resumo, df_perf, df_turmas, total):
 try:
     resumo, vagas = carregar_dados()
     df_hist_unidades, df_hist_total, df_hist_segmento, num_extracoes = carregar_historico()
-    df_turmas_all = criar_df_turmas(vagas)
-    df_resumo_all = criar_df_resumo(resumo)
+    # Passa como JSON string para permitir caching
+    vagas_str = json.dumps(vagas)
+    resumo_str = json.dumps(resumo)
+    df_turmas_all = criar_df_turmas(vagas_str)
+    df_resumo_all = criar_df_resumo(resumo_str)
 except FileNotFoundError:
     st.error("Arquivos de dados não encontrados. Execute a extração primeiro.")
     st.stop()
@@ -694,14 +894,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # Quadro de Quantidade de Turmas
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📚 Quantidade de Turmas por Unidade</h3>", unsafe_allow_html=True)
 
-# Calcula quantidade de turmas por unidade
-df_turmas_count = df_turmas_all.groupby('Unidade').agg({
-    'Turma': 'count',
-    'Vagas': 'sum',
-    'Matriculados': 'sum'
-}).reset_index()
-df_turmas_count.columns = ['Unidade', 'Total Turmas', 'Vagas', 'Matriculados']
-df_turmas_count['Nome_curto'] = df_turmas_count['Unidade'].apply(extrair_nome_curto)
+# Calcula quantidade de turmas por unidade (cached)
+df_turmas_count = criar_df_turmas_count(vagas_str)
 
 # Cards com totais por unidade
 cols_turmas = st.columns(len(df_turmas_count))
@@ -721,155 +915,19 @@ for idx, (_, row) in enumerate(df_turmas_count.iterrows()):
 total_turmas = df_turmas_count['Total Turmas'].sum()
 st.markdown(f"<p style='color: #94a3b8; text-align: center; margin-top: 0.5rem;'>Total: <strong style='color: #f1f5f9;'>{int(total_turmas)} turmas</strong></p>", unsafe_allow_html=True)
 
-# Detalhamento expandível
-with st.expander("📋 Ver detalhamento por segmento e turno"):
-    # Agrupa por unidade, segmento e turno
-    df_detail = df_turmas_all.groupby(['Unidade', 'Segmento', 'Turno']).agg({
-        'Turma': 'count',
-        'Vagas': 'sum',
-        'Matriculados': 'sum'
-    }).reset_index()
-    df_detail.columns = ['Unidade', 'Segmento', 'Turno', 'Qtd Turmas', 'Vagas', 'Matriculados']
-    df_detail['Unidade'] = df_detail['Unidade'].apply(extrair_nome_curto)
-    df_detail['Ocupação %'] = (df_detail['Matriculados'] / df_detail['Vagas'] * 100).round(1)
-
-    # Ordena por unidade e segmento
-    ordem_seg = {'Ed. Infantil': 1, 'Fund. 1': 2, 'Fund. 2': 3, 'Ens. Médio': 4}
-    df_detail['ordem_seg'] = df_detail['Segmento'].map(ordem_seg).fillna(5)
-    df_detail = df_detail.sort_values(['Unidade', 'ordem_seg', 'Turno'])
-    df_detail = df_detail.drop('ordem_seg', axis=1)
-
-    st.dataframe(
-        df_detail,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Ocupação %": st.column_config.ProgressColumn(
-                "Ocupação %",
-                format="%.1f%%",
-                min_value=0,
-                max_value=100,
-            ),
-        }
-    )
-
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Gráficos principais
+# Gráficos principais (usando funções cacheadas)
 col_left, col_right = st.columns(2)
 
 with col_left:
     st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Ocupação por Unidade</h3>", unsafe_allow_html=True)
-
-    df_unidades = pd.DataFrame([
-        {
-            'Unidade': u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome'],
-            'Ocupação': round(u['total']['matriculados'] / u['total']['vagas'] * 100, 1),
-            'Matriculados': u['total']['matriculados'],
-            'Vagas': u['total']['vagas']
-        }
-        for u in resumo['unidades']
-    ])
-
-    fig1 = go.Figure()
-
-    # Barra de fundo (vagas totais)
-    fig1.add_trace(go.Bar(
-        name='Capacidade',
-        x=df_unidades['Unidade'],
-        y=[100] * len(df_unidades),
-        marker_color='rgba(102, 126, 234, 0.15)',
-        hoverinfo='skip'
-    ))
-
-    # Barra de ocupação - escala 6 cores (usa função global)
-    colors = [cor_ocupacao_6_niveis(o) for o in df_unidades['Ocupação']]
-
-    fig1.add_trace(go.Bar(
-        name='Ocupação',
-        x=df_unidades['Unidade'],
-        y=df_unidades['Ocupação'],
-        marker_color=colors,
-        text=df_unidades.apply(lambda r: f"{r['Ocupação']:.1f}%<br>({int(r['Matriculados'])})", axis=1),
-        textposition='outside',
-        textfont=dict(color='#ffffff', size=12, family='Inter')
-    ))
-
-    fig1.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-        barmode='overlay',
-        showlegend=False,
-        height=380,
-        yaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', range=[0, 120], title=''),
-        xaxis=dict(gridcolor='rgba(102, 126, 234, 0.1)', title='')
-    )
-
+    fig1 = criar_grafico_ocupacao_unidade(resumo_str)
     st.plotly_chart(fig1, use_container_width=True)
 
 with col_right:
     st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Distribuição por Segmento</h3>", unsafe_allow_html=True)
-
-    segmentos_total = {}
-    for unidade in resumo['unidades']:
-        for seg, vals in unidade['segmentos'].items():
-            if seg not in segmentos_total:
-                segmentos_total[seg] = {'matriculados': 0, 'vagas': 0}
-            segmentos_total[seg]['matriculados'] += vals['matriculados']
-            segmentos_total[seg]['vagas'] += vals['vagas']
-
-    df_seg = pd.DataFrame([
-        {'Segmento': seg, 'Matriculados': v['matriculados'], 'Vagas': v['vagas']}
-        for seg, v in segmentos_total.items()
-    ])
-
-    ordem = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
-    df_seg['ordem'] = df_seg['Segmento'].map({s: i for i, s in enumerate(ordem)})
-    df_seg = df_seg.sort_values('ordem')
-
-    fig2 = go.Figure()
-
-    fig2.add_trace(go.Bar(
-        name='Vagas',
-        x=df_seg['Segmento'],
-        y=df_seg['Vagas'],
-        marker_color='rgba(102, 126, 234, 0.3)',
-        text=df_seg['Vagas'],
-        textposition='outside',
-        textfont=dict(color='#667eea')
-    ))
-
-    fig2.add_trace(go.Bar(
-        name='Matriculados',
-        x=df_seg['Segmento'],
-        y=df_seg['Matriculados'],
-        marker=dict(
-            color=df_seg['Matriculados'],
-            colorscale=[[0, '#667eea'], [1, '#764ba2']]
-        ),
-        text=df_seg['Matriculados'],
-        textposition='outside',
-        textfont=dict(color='#ffffff')
-    ))
-
-    fig2.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-        barmode='group',
-        height=350,
-        legend=dict(
-            orientation='h',
-            yanchor='bottom',
-            y=1.02,
-            xanchor='right',
-            x=1,
-            bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#a0a0b0')
-        )
-    )
-
+    fig2 = criar_grafico_segmentos(resumo_str)
     st.plotly_chart(fig2, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -877,20 +935,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ===== INSIGHTS EXECUTIVOS - CEO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>💡 Insights Executivos</h3>", unsafe_allow_html=True)
 
-# Calcula métricas por unidade com metas (usa funções globais)
-df_perf_unidade = df_resumo_all.groupby('Unidade').agg({
-    'Vagas': 'sum', 'Matriculados': 'sum', 'Novatos': 'sum', 'Veteranos': 'sum'
-}).reset_index()
-
-# Adiciona metas usando funções globais
-df_perf_unidade['Meta'] = df_perf_unidade['Unidade'].apply(lambda x: get_meta_unidade(x, 'matriculas'))
-df_perf_unidade['Gap'] = df_perf_unidade['Matriculados'] - df_perf_unidade['Meta']
-df_perf_unidade['Atingimento'] = (df_perf_unidade['Matriculados'] / df_perf_unidade['Meta'] * 100).round(1)
-df_perf_unidade['Ocupacao'] = df_perf_unidade.apply(lambda r: calcular_ocupacao(r['Matriculados'], r['Vagas']), axis=1)
-df_perf_unidade['Meta_Novatos'] = df_perf_unidade['Unidade'].apply(lambda x: get_meta_unidade(x, 'novatos'))
-df_perf_unidade['Gap_Novatos'] = df_perf_unidade['Novatos'] - df_perf_unidade['Meta_Novatos']
-df_perf_unidade['Ating_Novatos'] = (df_perf_unidade['Novatos'] / df_perf_unidade['Meta_Novatos'] * 100).round(1)
-df_perf_unidade['Nome_curto'] = df_perf_unidade['Unidade'].apply(extrair_nome_curto)
+# Calcula métricas por unidade com metas (cached)
+df_perf_unidade = criar_df_perf_unidade(resumo_str)
 
 # Calcula totais (usa constantes globais)
 gap_total = total['matriculados'] - META_MATRICULAS_TOTAL
@@ -1411,13 +1457,6 @@ if dados_2025_path.exists() and dados_2026_path.exists():
                 st.markdown(html_eva, unsafe_allow_html=True)
                 st.caption("Mostrando séries com base mínima de 5 alunos")
 
-        # Detalhamento expandível
-        with st.expander("📋 Ver detalhamento completo por série"):
-            st.dataframe(
-                df_retencao.sort_values(["Unidade", "Série 2026"]),
-                use_container_width=True,
-                hide_index=True
-            )
     else:
         st.warning("Não foi possível calcular a retenção. Verifique os dados de 2025 e 2026.")
 else:
@@ -1525,8 +1564,9 @@ def classificacao_termometro(ocupacao):
     elif ocupacao >= 38: return 'Crítica'
     else: return 'Congelada'
 
-# Calcula ocupação por unidade
-df_termo = df_unidades.copy()
+# Calcula ocupação por unidade (usa df_perf_unidade já cacheado)
+df_termo = df_perf_unidade[['Unidade', 'Ocupacao', 'Matriculados', 'Vagas']].copy()
+df_termo.columns = ['Unidade', 'Ocupação', 'Matriculados', 'Vagas']
 cols_termo = st.columns(len(df_termo))
 
 for idx, (_, row) in enumerate(df_termo.iterrows()):
@@ -1557,69 +1597,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ===== MAPA DE CALOR DE OCUPAÇÃO GERAL =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Mapa de Calor - Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
-
-# Prepara dados para heatmap
-df_heatmap = df_resumo_all.copy()
-df_heatmap['Ocupacao'] = (df_heatmap['Matriculados'] / df_heatmap['Vagas'] * 100).round(1)
-
-# Extrai nome curto da unidade
-df_heatmap['Unidade_curta'] = df_heatmap['Unidade'].apply(
-    lambda x: x.split('(')[1].replace(')', '') if '(' in x else x
-)
-
-# Cria pivot table para heatmap
-pivot_ocupacao = df_heatmap.pivot_table(
-    values='Ocupacao',
-    index='Segmento',
-    columns='Unidade_curta',
-    aggfunc='mean'
-).round(1)
-
-# Ordena segmentos
-ordem_seg = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
-pivot_ocupacao = pivot_ocupacao.reindex([s for s in ordem_seg if s in pivot_ocupacao.index])
-
-fig_heatmap = go.Figure(data=go.Heatmap(
-    z=pivot_ocupacao.values,
-    x=pivot_ocupacao.columns.tolist(),
-    y=pivot_ocupacao.index.tolist(),
-    zmin=0,    # Força escala a começar em 0%
-    zmax=100,  # Força escala a terminar em 100%
-    colorscale=[
-        [0, '#dc2626'],      # 0-37%: Congelada (vermelho)
-        [0.37, '#dc2626'],   # 37%: fim Congelada
-        [0.38, '#f97316'],   # 38-49%: Crítica (laranja)
-        [0.49, '#f97316'],   # 49%: fim Crítica
-        [0.50, '#facc15'],   # 50-69%: Risco (amarelo)
-        [0.69, '#facc15'],   # 69%: fim Risco
-        [0.70, '#a3e635'],   # 70-79%: Atenção (verde-amarelo)
-        [0.79, '#a3e635'],   # 79%: fim Atenção
-        [0.80, '#22c55e'],   # 80-89%: Boa (verde)
-        [0.89, '#22c55e'],   # 89%: fim Boa
-        [0.90, '#065f46'],   # 90-100%: Excelente (verde escuro)
-        [1.0, '#065f46']     # 100%: Excelente
-    ],
-    text=pivot_ocupacao.values,
-    texttemplate='%{text:.1f}%',
-    textfont={"size": 14, "color": "white"},
-    hovertemplate='Unidade: %{x}<br>Segmento: %{y}<br>Ocupação: %{z:.1f}%<extra></extra>',
-    colorbar=dict(
-        title=dict(text='Ocupação %', font=dict(color='#a0a0b0')),
-        tickfont=dict(color='#a0a0b0'),
-        tickvals=[0, 38, 50, 70, 80, 90, 100],
-        ticktext=['0%', '38%', '50%', '70%', '80%', '90%', '100%']
-    )
-))
-
-fig_heatmap.update_layout(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-    height=350,
-    xaxis=dict(tickfont=dict(color='#e0e0ff', size=12)),
-    yaxis=dict(tickfont=dict(color='#e0e0ff', size=12))
-)
-
+fig_heatmap = criar_heatmap_ocupacao(resumo_str)
 st.plotly_chart(fig_heatmap, use_container_width=True)
 
 # Legenda das faixas de ocupação
@@ -1687,77 +1665,6 @@ if num_extracoes >= 2:
 
         fig_unid.update_layout(**PLOTLY_LAYOUT, height=300, hovermode='x unified')
         st.plotly_chart(fig_unid, use_container_width=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Detalhamento por unidade
-st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🏫 Detalhamento por Unidade</h3>", unsafe_allow_html=True)
-
-tabs = st.tabs([u['nome'].split('(')[1].replace(')', '') if '(' in u['nome'] else u['nome']
-                for u in resumo['unidades']])
-
-for i, tab in enumerate(tabs):
-    with tab:
-        unidade = resumo['unidades'][i]
-        unidade_vagas = vagas['unidades'][i]
-
-        t = unidade['total']
-        ocup = round(t['matriculados'] / t['vagas'] * 100, 1)
-
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Ocupação", f"{ocup:.1f}%")
-        c2.metric("Matriculados", t['matriculados'])
-        c3.metric("Disponíveis", t['disponiveis'])
-        c4.metric("Novatos / Veteranos", f"{t['novatos']} / {t['veteranos']}")
-
-        col_a, col_b = st.columns([2, 1])
-
-        with col_a:
-            df_seg_u = pd.DataFrame([
-                {'Segmento': seg, **vals}
-                for seg, vals in unidade['segmentos'].items()
-            ])
-
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                x=df_seg_u['Segmento'],
-                y=df_seg_u['vagas'],
-                name='Vagas',
-                marker_color='rgba(102, 126, 234, 0.3)'
-            ))
-            fig.add_trace(go.Bar(
-                x=df_seg_u['Segmento'],
-                y=df_seg_u['matriculados'],
-                name='Matriculados',
-                marker_color=COLORS['primary']
-            ))
-            fig.update_layout(**PLOTLY_LAYOUT, height=280, barmode='group')
-            st.plotly_chart(fig, use_container_width=True)
-
-        with col_b:
-            fig_pie = go.Figure(data=[go.Pie(
-                labels=['Novatos', 'Veteranos'],
-                values=[t['novatos'], t['veteranos']],
-                hole=.6,
-                marker_colors=[COLORS['warning'], COLORS['primary']]
-            )])
-            fig_pie.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='#a0a0b0', family='Inter, sans-serif'),
-                height=280,
-                showlegend=True,
-                legend=dict(orientation='h', yanchor='bottom', y=-0.2, bgcolor='rgba(0,0,0,0)')
-            )
-            st.plotly_chart(fig_pie, use_container_width=True)
-
-        with st.expander("📋 Ver todas as turmas"):
-            df_turmas = pd.DataFrame(unidade_vagas['turmas'])
-            # Calcula ocupação
-            df_turmas['ocupacao'] = (df_turmas['matriculados'] / df_turmas['vagas'] * 100).round(1)
-            df_turmas = df_turmas[['segmento', 'turma', 'vagas', 'matriculados', 'ocupacao', 'disponiveis', 'pre_matriculados']]
-            df_turmas.columns = ['Segmento', 'Turma', 'Vagas', 'Matr.', 'Ocup.%', 'Disp.', 'Pré-Matr.']
-            st.dataframe(df_turmas, use_container_width=True, hide_index=True)
 
 # ===== PAINEL EXECUTIVO - CEO =====
 st.markdown("<br>", unsafe_allow_html=True)
