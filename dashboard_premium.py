@@ -741,7 +741,7 @@ with col_right:
         for seg, v in segmentos_total.items()
     ])
 
-    ordem = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
+    ordem = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
     df_seg['ordem'] = df_seg['Segmento'].map({s: i for i, s in enumerate(ordem)})
     df_seg = df_seg.sort_values('ordem')
 
@@ -1030,7 +1030,7 @@ if resumo_2025_path.exists():
 
     # Prepara dados para comparação
     dados_comp = []
-    segmentos_validos = ["Ed. Infantil", "Fund. I", "Fund. II", "Ens. Médio"]
+    segmentos_validos = ["Ed. Infantil", "Fund. 1", "Fund. 2", "Ens. Médio"]
 
     for unidade_2026 in resumo.get("unidades", []):
         codigo = unidade_2026["codigo"]
@@ -1493,7 +1493,7 @@ pivot_ocupacao = df_heatmap.pivot_table(
 ).round(1)
 
 # Ordena segmentos
-ordem_seg = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
+ordem_seg = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
 pivot_ocupacao = pivot_ocupacao.reindex([s for s in ordem_seg if s in pivot_ocupacao.index])
 
 fig_heatmap = go.Figure(data=go.Heatmap(
