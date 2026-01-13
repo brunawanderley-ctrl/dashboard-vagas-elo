@@ -204,13 +204,17 @@ st.markdown("""
     }
 
     /* Headers */
-    h1, h2, h3 {
-        color: #ffffff !important;
+    h1, h2, h3, h4, h5, h6 {
+        color: #f1f5f9 !important;
         font-weight: 600 !important;
     }
 
     h2, h3 {
         color: #e0e0ff !important;
+    }
+
+    h4, h5, h6 {
+        color: #e2e8f0 !important;
     }
 
     h1 {
@@ -225,6 +229,21 @@ st.markdown("""
     .stMarkdown h3 {
         color: #c4d0ff !important;
         font-size: 1.4rem !important;
+    }
+
+    .stMarkdown h4 {
+        color: #e2e8f0 !important;
+        font-size: 1.2rem !important;
+    }
+
+    /* Default text color */
+    .stMarkdown p, .stMarkdown span, .stMarkdown div {
+        color: #cbd5e1;
+    }
+
+    /* Selectbox and input labels */
+    .stSelectbox label, .stMultiSelect label, .stTextInput label {
+        color: #e2e8f0 !important;
     }
 
     /* Metric cards */
