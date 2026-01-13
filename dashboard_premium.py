@@ -600,7 +600,7 @@ col_title, col_btn = st.columns([5, 1])
 
 with col_title:
     st.markdown("""
-        <h1 style='margin-bottom: 0; color: #f1f5f9;'>Dashboard de Vagas</h1>
+        <h1 style='margin-bottom: 0; color: #f1f5f9; font-size: 3rem;'>Matrículas</h1>
         <p style='color: #667eea; font-size: 1.2rem; margin-top: 0.5rem;'>Colégio Elo - Visão Executiva</p>
     """, unsafe_allow_html=True)
 
