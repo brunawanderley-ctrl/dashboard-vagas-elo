@@ -874,19 +874,17 @@ else:
 
 ocupacao = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vagas'] > 0 else 0
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.metric("OCUPAÇÃO GERAL", f"{ocupacao:.1f}%")
+    st.metric("OCUPAÇÃO", f"{ocupacao:.1f}%")
 with col2:
-    st.metric("MATRICULADOS", f"{total['matriculados']:,}".replace(",", "."))
+    st.metric("MATRÍCULAS", f"{total['matriculados']:,}".replace(",", "."))
 with col3:
-    st.metric("VETERANOS", f"{total['veteranos']:,}".replace(",", "."))
+    st.metric("VAGAS", f"{total['vagas']:,}".replace(",", "."))
 with col4:
     st.metric("NOVATOS", f"{total['novatos']:,}".replace(",", "."))
 with col5:
-    st.metric("VAGAS TOTAIS", f"{total['vagas']:,}".replace(",", "."))
-with col6:
     st.metric("DISPONÍVEIS", f"{total['disponiveis']:,}".replace(",", "."))
 
 st.markdown("<br>", unsafe_allow_html=True)
