@@ -459,7 +459,7 @@ def gerar_relatorio_pdf(resumo, df_perf, df_turmas, total):
     @media print{{body{{-webkit-print-color-adjust:exact;print-color-adjust:exact}}}}</style></head><body>
     <div class="header"><h1>Relatório Executivo - Colégio Elo</h1><p>Período: {resumo['periodo']} | Gerado em: {data_hoje} | Dados de: {data_extracao}</p></div>
     <div class="kpi-grid">
-    <div class="kpi-box {'green' if ocupacao_geral >= 80 else 'yellow' if ocupacao_geral >= 60 else 'red'}"><div class="kpi-label">Ocupação Geral</div><div class="kpi-value">{ocupacao_geral}%</div><div class="kpi-detail">{total['matriculados']:,} / {total['vagas']:,} vagas</div></div>
+    <div class="kpi-box {'green' if ocupacao_geral >= 80 else 'yellow' if ocupacao_geral >= 60 else 'red'}"><div class="kpi-label">Ocupação Geral</div><div class="kpi-value">{ocupacao_geral:.1f}%</div><div class="kpi-detail">{total['matriculados']:,} / {total['vagas']:,} vagas</div></div>
     <div class="kpi-box {'green' if ating_meta >= 100 else 'yellow' if ating_meta >= 80 else 'red'}"><div class="kpi-label">Meta Matrículas (4.100)</div><div class="kpi-value">{ating_meta}%</div><div class="kpi-detail">{total['matriculados']:,} alunos ({total['matriculados'] - 4100:+,})</div></div>
     <div class="kpi-box {'green' if ating_novatos >= 100 else 'yellow' if ating_novatos >= 80 else 'red'}"><div class="kpi-label">Meta Novatos (1.000)</div><div class="kpi-value">{ating_novatos}%</div><div class="kpi-detail">{total['novatos']:,} novatos ({total['novatos'] - 1000:+,})</div></div>
     </div>
@@ -581,7 +581,7 @@ col_title, col_btn = st.columns([5, 1])
 
 with col_title:
     st.markdown("""
-        <h1 style='margin-bottom: 0;'>Dashboard de Vagas</h1>
+        <h1 style='margin-bottom: 0; color: #f1f5f9;'>Dashboard de Vagas</h1>
         <p style='color: #667eea; font-size: 1.2rem; margin-top: 0.5rem;'>Colégio Elo - Visão Executiva</p>
     """, unsafe_allow_html=True)
 
@@ -658,7 +658,7 @@ ocupacao = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vaga
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
-    st.metric("OCUPAÇÃO", f"{ocupacao}%")
+    st.metric("OCUPAÇÃO", f"{ocupacao:.1f}%")
 with col2:
     st.metric("MATRICULADOS", f"{total['matriculados']:,}".replace(",", "."))
 with col3:
@@ -707,7 +707,7 @@ with col_left:
         x=df_unidades['Unidade'],
         y=df_unidades['Ocupação'],
         marker_color=colors,
-        text=df_unidades.apply(lambda r: f"{r['Ocupação']}%<br>({int(r['Matriculados'])})", axis=1),
+        text=df_unidades.apply(lambda r: f"{r['Ocupação']:.1f}%<br>({int(r['Matriculados'])})", axis=1),
         textposition='outside',
         textfont=dict(color='#ffffff', size=12, family='Inter')
     ))
@@ -1622,7 +1622,7 @@ for i, tab in enumerate(tabs):
         ocup = round(t['matriculados'] / t['vagas'] * 100, 1)
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Ocupação", f"{ocup}%")
+        c1.metric("Ocupação", f"{ocup:.1f}%")
         c2.metric("Matriculados", t['matriculados'])
         c3.metric("Disponíveis", t['disponiveis'])
         c4.metric("Novatos / Veteranos", f"{t['novatos']} / {t['veteranos']}")
