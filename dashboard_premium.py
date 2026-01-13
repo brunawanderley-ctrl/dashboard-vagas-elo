@@ -677,7 +677,7 @@ ocupacao = round(total['matriculados'] / total['vagas'] * 100, 1) if total['vaga
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
-    st.metric("OCUPAÇÃO", f"{ocupacao:.1f}%")
+    st.metric("OCUPAÇÃO GERAL", f"{ocupacao:.1f}%")
 with col2:
     st.metric("MATRICULADOS", f"{total['matriculados']:,}".replace(",", "."))
 with col3:
@@ -1077,7 +1077,7 @@ for i, tab in enumerate(tabs_alertas):
         with col_a2:
             st.markdown(f"""
             <div style='background: rgba(251, 191, 36, 0.15); padding: 1rem; border-radius: 12px; border-left: 5px solid #f59e0b; margin-bottom: 0.8rem;'>
-                <p style='color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0;'>🟡 BAIXA OCUPAÇÃO (<50%)</p>
+                <p style='color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0;'>🟡 BAIXA OCUPAÇÃO GERAL (<50%)</p>
                 <p style='color: #fcd34d; font-size: 0.85rem; margin: 0.3rem 0 0 0;'>{len(vazias)} turmas - foco em captação</p>
             </div>
             """, unsafe_allow_html=True)
@@ -1425,7 +1425,7 @@ else:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===== GRÁFICO DE OCUPAÇÃO POR UNIDADE/SEGMENTO =====
+# ===== GRÁFICO DE OCUPAÇÃO GERAL POR UNIDADE/SEGMENTO =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>Taxa de Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
 df_ocupacao = df_resumo_filtrado.copy()
@@ -1505,7 +1505,7 @@ with col_nv2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===== TERMÔMETRO DE OCUPAÇÃO POR UNIDADE =====
+# ===== TERMÔMETRO DE OCUPAÇÃO GERAL POR UNIDADE =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>🌡️ Termômetro de Ocupação por Unidade</h3>", unsafe_allow_html=True)
 
 # Função para determinar cor do termômetro - escala 6 cores
@@ -1555,7 +1555,7 @@ for idx, (_, row) in enumerate(df_termo.iterrows()):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===== MAPA DE CALOR DE OCUPAÇÃO =====
+# ===== MAPA DE CALOR DE OCUPAÇÃO GERAL =====
 st.markdown("<h3 style='color: #f1f5f9; font-weight: 600;'>📊 Mapa de Calor - Ocupação por Unidade e Segmento</h3>", unsafe_allow_html=True)
 
 # Prepara dados para heatmap
