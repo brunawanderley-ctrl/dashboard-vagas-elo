@@ -557,9 +557,17 @@ st.markdown("""
 # Carrega dados atuais
 @st.cache_data(ttl=60)
 def carregar_dados():
-    with open(BASE_PATH / "resumo_ultimo.json") as f:
+    resumo_path = BASE_PATH / "resumo_ultimo.json"
+    vagas_path = BASE_PATH / "vagas_ultimo.json"
+
+    if not resumo_path.exists() or not vagas_path.exists():
+        st.error(f"Arquivos de dados não encontrados em: {BASE_PATH}")
+        st.info("Verifique se os arquivos resumo_ultimo.json e vagas_ultimo.json existem na pasta output/")
+        st.stop()
+
+    with open(resumo_path, encoding='utf-8') as f:
         resumo = json.load(f)
-    with open(BASE_PATH / "vagas_ultimo.json") as f:
+    with open(vagas_path, encoding='utf-8') as f:
         vagas = json.load(f)
     return resumo, vagas
 
