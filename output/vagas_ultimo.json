@@ -1,5 +1,5 @@
 {
-  "data_extracao": "2026-01-12T21:40:51.065082",
+  "data_extracao": "2026-01-14T21:39:28.952711",
   "periodo": "2026",
   "unidades": [
     {
@@ -48,10 +48,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 23,
           "novatos": 4,
-          "veteranos": 5,
-          "matriculados": 9,
-          "vagas_restantes": 14,
-          "pre_matriculados": 4,
+          "veteranos": 7,
+          "matriculados": 11,
+          "vagas_restantes": 12,
+          "pre_matriculados": 2,
           "disponiveis": 10
         },
         {
@@ -72,10 +72,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 24,
           "novatos": 3,
-          "veteranos": 5,
-          "matriculados": 8,
-          "vagas_restantes": 16,
-          "pre_matriculados": 8,
+          "veteranos": 7,
+          "matriculados": 10,
+          "vagas_restantes": 14,
+          "pre_matriculados": 6,
           "disponiveis": 8
         },
         {
@@ -84,10 +84,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 24,
           "novatos": 0,
-          "veteranos": 9,
-          "matriculados": 9,
-          "vagas_restantes": 15,
-          "pre_matriculados": 7,
+          "veteranos": 10,
+          "matriculados": 10,
+          "vagas_restantes": 14,
+          "pre_matriculados": 6,
           "disponiveis": 8
         },
         {
@@ -108,10 +108,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 25,
           "novatos": 0,
-          "veteranos": 10,
-          "matriculados": 10,
-          "vagas_restantes": 15,
-          "pre_matriculados": 12,
+          "veteranos": 11,
+          "matriculados": 11,
+          "vagas_restantes": 14,
+          "pre_matriculados": 11,
           "disponiveis": 3
         },
         {
@@ -119,12 +119,12 @@
           "curso": "1- BV - Educação Infantil - Unidade Boa Viagem / Infantil V / 2026",
           "segmento": "Ed. Infantil",
           "vagas": 25,
-          "novatos": 3,
-          "veteranos": 4,
-          "matriculados": 7,
-          "vagas_restantes": 18,
-          "pre_matriculados": 10,
-          "disponiveis": 8
+          "novatos": 4,
+          "veteranos": 6,
+          "matriculados": 10,
+          "vagas_restantes": 15,
+          "pre_matriculados": 8,
+          "disponiveis": 7
         },
         {
           "turma": "Infantil V - Turma B Manhã - Manhã",
@@ -144,10 +144,10 @@
           "segmento": "Fund. 1",
           "vagas": 25,
           "novatos": 2,
-          "veteranos": 12,
-          "matriculados": 14,
-          "vagas_restantes": 11,
-          "pre_matriculados": 12,
+          "veteranos": 13,
+          "matriculados": 15,
+          "vagas_restantes": 10,
+          "pre_matriculados": 11,
           "disponiveis": -1
         },
         {
@@ -156,10 +156,10 @@
           "segmento": "Fund. 1",
           "vagas": 25,
           "novatos": 0,
-          "veteranos": 10,
-          "matriculados": 10,
-          "vagas_restantes": 15,
-          "pre_matriculados": 11,
+          "veteranos": 11,
+          "matriculados": 11,
+          "vagas_restantes": 14,
+          "pre_matriculados": 10,
           "disponiveis": 4
         },
         {
@@ -168,10 +168,10 @@
           "segmento": "Fund. 1",
           "vagas": 25,
           "novatos": 5,
-          "veteranos": 13,
-          "matriculados": 18,
-          "vagas_restantes": 7,
-          "pre_matriculados": 9,
+          "veteranos": 14,
+          "matriculados": 19,
+          "vagas_restantes": 6,
+          "pre_matriculados": 8,
           "disponiveis": -2
         },
         {
@@ -192,10 +192,10 @@
           "segmento": "Fund. 1",
           "vagas": 25,
           "novatos": 1,
-          "veteranos": 6,
-          "matriculados": 7,
-          "vagas_restantes": 18,
-          "pre_matriculados": 9,
+          "veteranos": 8,
+          "matriculados": 9,
+          "vagas_restantes": 16,
+          "pre_matriculados": 7,
           "disponiveis": 9
         },
         {
@@ -203,36 +203,36 @@
           "curso": "1- BV - Ensino Fundamental I - Unidade Boa Viagem / 2º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 25,
-          "novatos": 1,
+          "novatos": 3,
           "veteranos": 10,
-          "matriculados": 11,
-          "vagas_restantes": 14,
+          "matriculados": 13,
+          "vagas_restantes": 12,
           "pre_matriculados": 10,
-          "disponiveis": 4
+          "disponiveis": 2
         },
         {
           "turma": "2º Ano - Turma B Tarde - Tarde",
           "curso": "1- BV - Ensino Fundamental I - Unidade Boa Viagem / 2º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 25,
-          "novatos": 1,
+          "novatos": 2,
           "veteranos": 15,
-          "matriculados": 16,
-          "vagas_restantes": 9,
+          "matriculados": 17,
+          "vagas_restantes": 8,
           "pre_matriculados": 0,
-          "disponiveis": 9
+          "disponiveis": 8
         },
         {
           "turma": "3º Ano - Turma A Manhã - Manhã",
           "curso": "1- BV - Ensino Fundamental I - Unidade Boa Viagem / 3º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 30,
-          "novatos": 3,
-          "veteranos": 6,
-          "matriculados": 9,
-          "vagas_restantes": 21,
+          "novatos": 4,
+          "veteranos": 7,
+          "matriculados": 11,
+          "vagas_restantes": 19,
           "pre_matriculados": 10,
-          "disponiveis": 11
+          "disponiveis": 9
         },
         {
           "turma": "3º Ano - Turma A Tarde - Tarde",
@@ -252,10 +252,10 @@
           "segmento": "Fund. 1",
           "vagas": 30,
           "novatos": 1,
-          "veteranos": 13,
-          "matriculados": 14,
-          "vagas_restantes": 16,
-          "pre_matriculados": 11,
+          "veteranos": 14,
+          "matriculados": 15,
+          "vagas_restantes": 15,
+          "pre_matriculados": 10,
           "disponiveis": 5
         },
         {
@@ -276,10 +276,10 @@
           "segmento": "Fund. 1",
           "vagas": 32,
           "novatos": 2,
-          "veteranos": 6,
-          "matriculados": 8,
-          "vagas_restantes": 24,
-          "pre_matriculados": 13,
+          "veteranos": 7,
+          "matriculados": 9,
+          "vagas_restantes": 23,
+          "pre_matriculados": 12,
           "disponiveis": 11
         },
         {
@@ -300,10 +300,10 @@
           "segmento": "Fund. 1",
           "vagas": 32,
           "novatos": 5,
-          "veteranos": 10,
-          "matriculados": 15,
-          "vagas_restantes": 17,
-          "pre_matriculados": 10,
+          "veteranos": 11,
+          "matriculados": 16,
+          "vagas_restantes": 16,
+          "pre_matriculados": 9,
           "disponiveis": 7
         },
         {
@@ -323,12 +323,12 @@
           "curso": "1- BV - Ensino Fundamental I - Unidade Boa Viagem / 5º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 33,
-          "novatos": 2,
-          "veteranos": 15,
-          "matriculados": 17,
-          "vagas_restantes": 16,
-          "pre_matriculados": 16,
-          "disponiveis": 0
+          "novatos": 3,
+          "veteranos": 16,
+          "matriculados": 19,
+          "vagas_restantes": 14,
+          "pre_matriculados": 15,
+          "disponiveis": -1
         },
         {
           "turma": "5º Ano - Turma B Manhã - Boa Viagem - Manhã",
@@ -336,10 +336,10 @@
           "segmento": "Fund. 1",
           "vagas": 33,
           "novatos": 1,
-          "veteranos": 12,
-          "matriculados": 13,
-          "vagas_restantes": 20,
-          "pre_matriculados": 20,
+          "veteranos": 15,
+          "matriculados": 16,
+          "vagas_restantes": 17,
+          "pre_matriculados": 17,
           "disponiveis": 0
         },
         {
@@ -360,11 +360,11 @@
           "segmento": "Fund. 2",
           "vagas": 40,
           "novatos": 7,
-          "veteranos": 27,
-          "matriculados": 34,
-          "vagas_restantes": 6,
-          "pre_matriculados": 8,
-          "disponiveis": -2
+          "veteranos": 29,
+          "matriculados": 36,
+          "vagas_restantes": 4,
+          "pre_matriculados": 7,
+          "disponiveis": -3
         },
         {
           "turma": "6º Ano - Turma A Tarde - Tarde",
@@ -384,11 +384,11 @@
           "segmento": "Fund. 2",
           "vagas": 40,
           "novatos": 6,
-          "veteranos": 21,
-          "matriculados": 27,
-          "vagas_restantes": 13,
+          "veteranos": 22,
+          "matriculados": 28,
+          "vagas_restantes": 12,
           "pre_matriculados": 2,
-          "disponiveis": 11
+          "disponiveis": 10
         },
         {
           "turma": "7º Ano - Turma A Manhã - Manhã",
@@ -396,10 +396,10 @@
           "segmento": "Fund. 2",
           "vagas": 42,
           "novatos": 3,
-          "veteranos": 14,
-          "matriculados": 17,
-          "vagas_restantes": 25,
-          "pre_matriculados": 9,
+          "veteranos": 15,
+          "matriculados": 18,
+          "vagas_restantes": 24,
+          "pre_matriculados": 8,
           "disponiveis": 16
         },
         {
@@ -407,11 +407,11 @@
           "curso": "1- BV - Ensino Fundamental II - Unidade Boa Viagem / 7º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 42,
-          "novatos": 2,
-          "veteranos": 18,
-          "matriculados": 20,
-          "vagas_restantes": 22,
-          "pre_matriculados": 15,
+          "novatos": 3,
+          "veteranos": 19,
+          "matriculados": 22,
+          "vagas_restantes": 20,
+          "pre_matriculados": 13,
           "disponiveis": 7
         },
         {
@@ -419,12 +419,12 @@
           "curso": "1- BV - Ensino Fundamental II - Unidade Boa Viagem / 7º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 42,
-          "novatos": 1,
-          "veteranos": 13,
-          "matriculados": 14,
-          "vagas_restantes": 28,
-          "pre_matriculados": 21,
-          "disponiveis": 7
+          "novatos": 3,
+          "veteranos": 15,
+          "matriculados": 18,
+          "vagas_restantes": 24,
+          "pre_matriculados": 20,
+          "disponiveis": 4
         },
         {
           "turma": "8º Ano - Turma A Manhã - Manhã",
@@ -444,10 +444,10 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 4,
-          "veteranos": 12,
-          "matriculados": 16,
-          "vagas_restantes": 29,
-          "pre_matriculados": 28,
+          "veteranos": 13,
+          "matriculados": 17,
+          "vagas_restantes": 28,
+          "pre_matriculados": 27,
           "disponiveis": 1
         },
         {
@@ -456,23 +456,23 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 5,
-          "veteranos": 22,
-          "matriculados": 27,
-          "vagas_restantes": 18,
-          "pre_matriculados": 13,
-          "disponiveis": 5
+          "veteranos": 25,
+          "matriculados": 30,
+          "vagas_restantes": 15,
+          "pre_matriculados": 11,
+          "disponiveis": 4
         },
         {
           "turma": "9º Ano - Turma A Manhã - Manhã",
           "curso": "1- BV - Ensino Fundamental II - Unidade Boa Viagem / 9º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 5,
-          "veteranos": 19,
-          "matriculados": 24,
-          "vagas_restantes": 21,
+          "novatos": 6,
+          "veteranos": 20,
+          "matriculados": 26,
+          "vagas_restantes": 19,
           "pre_matriculados": 15,
-          "disponiveis": 6
+          "disponiveis": 4
         },
         {
           "turma": "9º Ano - Turma A Tarde - Tarde",
@@ -480,10 +480,10 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 4,
-          "veteranos": 8,
-          "matriculados": 12,
-          "vagas_restantes": 33,
-          "pre_matriculados": 12,
+          "veteranos": 11,
+          "matriculados": 15,
+          "vagas_restantes": 30,
+          "pre_matriculados": 9,
           "disponiveis": 21
         },
         {
@@ -491,47 +491,35 @@
           "curso": "1- BV - Ensino Fundamental II - Unidade Boa Viagem / 9º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 7,
-          "veteranos": 22,
-          "matriculados": 29,
-          "vagas_restantes": 16,
+          "novatos": 8,
+          "veteranos": 24,
+          "matriculados": 32,
+          "vagas_restantes": 13,
           "pre_matriculados": 11,
-          "disponiveis": 5
-        },
-        {
-          "turma": "9º Ano - Turma C Manhã - Manhã",
-          "curso": "1- BV - Ensino Fundamental II - Unidade Boa Viagem / 9º Ano / 2026",
-          "segmento": "Fund. 2",
-          "vagas": 45,
-          "novatos": 0,
-          "veteranos": 0,
-          "matriculados": 0,
-          "vagas_restantes": 45,
-          "pre_matriculados": 0,
-          "disponiveis": 45
+          "disponiveis": 2
         },
         {
           "turma": "1ª Série - Médio - Turma A Manhã - Manhã",
           "curso": "1- BV - Ensino Médio - Unidade Boa Viagem / 1º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 11,
-          "veteranos": 13,
-          "matriculados": 24,
-          "vagas_restantes": 21,
-          "pre_matriculados": 17,
-          "disponiveis": 4
+          "novatos": 15,
+          "veteranos": 12,
+          "matriculados": 27,
+          "vagas_restantes": 18,
+          "pre_matriculados": 16,
+          "disponiveis": 2
         },
         {
           "turma": "1ª Série - Médio - Turma B Manhã - Manhã",
           "curso": "1- BV - Ensino Médio - Unidade Boa Viagem / 1º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 6,
-          "veteranos": 19,
-          "matriculados": 25,
-          "vagas_restantes": 20,
-          "pre_matriculados": 15,
+          "novatos": 4,
+          "veteranos": 23,
+          "matriculados": 27,
+          "vagas_restantes": 18,
+          "pre_matriculados": 13,
           "disponiveis": 5
         },
         {
@@ -540,11 +528,11 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 0,
-          "veteranos": 22,
-          "matriculados": 22,
-          "vagas_restantes": 23,
-          "pre_matriculados": 29,
-          "disponiveis": -6
+          "veteranos": 23,
+          "matriculados": 23,
+          "vagas_restantes": 22,
+          "pre_matriculados": 27,
+          "disponiveis": -5
         },
         {
           "turma": "2ª Série - Médio - Turma B Manhã - Manhã",
@@ -552,11 +540,11 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 5,
-          "veteranos": 22,
-          "matriculados": 27,
-          "vagas_restantes": 18,
+          "veteranos": 21,
+          "matriculados": 26,
+          "vagas_restantes": 19,
           "pre_matriculados": 24,
-          "disponiveis": -6
+          "disponiveis": -5
         },
         {
           "turma": "2ª Série - Médio - Turma A Manhã - Manhã",
@@ -564,23 +552,23 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 1,
-          "veteranos": 30,
-          "matriculados": 31,
-          "vagas_restantes": 14,
-          "pre_matriculados": 35,
-          "disponiveis": -21
+          "veteranos": 33,
+          "matriculados": 34,
+          "vagas_restantes": 11,
+          "pre_matriculados": 33,
+          "disponiveis": -22
         },
         {
-          "turma": "2ª Série - Médio -Turma B Manhã - Manhã",
+          "turma": "3ª Série - Médio -Turma B Manhã - Manhã",
           "curso": "1- BV - Ensino Médio - Unidade Boa Viagem / 3º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 50,
           "novatos": 2,
-          "veteranos": 18,
-          "matriculados": 20,
-          "vagas_restantes": 30,
+          "veteranos": 17,
+          "matriculados": 19,
+          "vagas_restantes": 31,
           "pre_matriculados": 14,
-          "disponiveis": 16
+          "disponiveis": 17
         },
         {
           "turma": "3ª Série - Médio Turma A Manhã - Manhã",
@@ -588,10 +576,10 @@
           "segmento": "Ens. Médio",
           "vagas": 50,
           "novatos": 1,
-          "veteranos": 28,
-          "matriculados": 29,
-          "vagas_restantes": 21,
-          "pre_matriculados": 13,
+          "veteranos": 29,
+          "matriculados": 30,
+          "vagas_restantes": 20,
+          "pre_matriculados": 12,
           "disponiveis": 8
         }
       ]
@@ -617,12 +605,12 @@
           "curso": "2- CD - Educação Infantil - Unidade Candeias / Infantil II / 2026",
           "segmento": "Ed. Infantil",
           "vagas": 15,
-          "novatos": 3,
+          "novatos": 4,
           "veteranos": 0,
-          "matriculados": 3,
-          "vagas_restantes": 12,
+          "matriculados": 4,
+          "vagas_restantes": 11,
           "pre_matriculados": 0,
-          "disponiveis": 12
+          "disponiveis": 11
         },
         {
           "turma": "Infantil III - Turma A Manhã - Manhã",
@@ -654,10 +642,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 20,
           "novatos": 3,
-          "veteranos": 7,
-          "matriculados": 10,
-          "vagas_restantes": 10,
-          "pre_matriculados": 13,
+          "veteranos": 8,
+          "matriculados": 11,
+          "vagas_restantes": 9,
+          "pre_matriculados": 12,
           "disponiveis": -3
         },
         {
@@ -681,8 +669,8 @@
           "veteranos": 13,
           "matriculados": 15,
           "vagas_restantes": 10,
-          "pre_matriculados": 8,
-          "disponiveis": 2
+          "pre_matriculados": 7,
+          "disponiveis": 3
         },
         {
           "turma": "Infantil V - Turma A Tarde - Tarde",
@@ -690,11 +678,11 @@
           "segmento": "Ed. Infantil",
           "vagas": 25,
           "novatos": 2,
-          "veteranos": 6,
-          "matriculados": 8,
-          "vagas_restantes": 17,
-          "pre_matriculados": 5,
-          "disponiveis": 12
+          "veteranos": 8,
+          "matriculados": 10,
+          "vagas_restantes": 15,
+          "pre_matriculados": 4,
+          "disponiveis": 11
         },
         {
           "turma": "EFI - Candeias Kids - 1º Ano - Turma B- Manhã - Manhã",
@@ -749,12 +737,12 @@
           "curso": "2- CD - Ensino Fundamental I - Unidade Candeias / 2º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 30,
-          "novatos": 5,
+          "novatos": 6,
           "veteranos": 9,
-          "matriculados": 14,
-          "vagas_restantes": 16,
+          "matriculados": 15,
+          "vagas_restantes": 15,
           "pre_matriculados": 16,
-          "disponiveis": 0
+          "disponiveis": -1
         },
         {
           "turma": "EFI - Candeias Kids - 2º Ano - Turma B - Manhã - Manhã",
@@ -774,10 +762,10 @@
           "segmento": "Fund. 1",
           "vagas": 30,
           "novatos": 7,
-          "veteranos": 7,
-          "matriculados": 14,
-          "vagas_restantes": 16,
-          "pre_matriculados": 17,
+          "veteranos": 8,
+          "matriculados": 15,
+          "vagas_restantes": 15,
+          "pre_matriculados": 16,
           "disponiveis": -1
         },
         {
@@ -798,10 +786,10 @@
           "segmento": "Fund. 1",
           "vagas": 30,
           "novatos": 4,
-          "veteranos": 7,
-          "matriculados": 11,
-          "vagas_restantes": 19,
-          "pre_matriculados": 12,
+          "veteranos": 8,
+          "matriculados": 12,
+          "vagas_restantes": 18,
+          "pre_matriculados": 11,
           "disponiveis": 7
         },
         {
@@ -809,12 +797,12 @@
           "curso": "2- CD - Ensino Fundamental I - Unidade Candeias / 4º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 35,
-          "novatos": 5,
-          "veteranos": 12,
-          "matriculados": 17,
-          "vagas_restantes": 18,
-          "pre_matriculados": 5,
-          "disponiveis": 13
+          "novatos": 7,
+          "veteranos": 13,
+          "matriculados": 20,
+          "vagas_restantes": 15,
+          "pre_matriculados": 4,
+          "disponiveis": 11
         },
         {
           "turma": "EFI - Candeias Teen I- 4º Ano - Turma A - Tarde - Tarde",
@@ -846,10 +834,10 @@
           "segmento": "Fund. 1",
           "vagas": 35,
           "novatos": 5,
-          "veteranos": 10,
-          "matriculados": 15,
-          "vagas_restantes": 20,
-          "pre_matriculados": 17,
+          "veteranos": 11,
+          "matriculados": 16,
+          "vagas_restantes": 19,
+          "pre_matriculados": 16,
           "disponiveis": 3
         },
         {
@@ -870,10 +858,10 @@
           "segmento": "Fund. 1",
           "vagas": 35,
           "novatos": 6,
-          "veteranos": 9,
-          "matriculados": 15,
-          "vagas_restantes": 20,
-          "pre_matriculados": 13,
+          "veteranos": 10,
+          "matriculados": 16,
+          "vagas_restantes": 19,
+          "pre_matriculados": 12,
           "disponiveis": 7
         },
         {
@@ -881,24 +869,24 @@
           "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 6º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 42,
-          "novatos": 2,
+          "novatos": 3,
           "veteranos": 13,
-          "matriculados": 15,
-          "vagas_restantes": 27,
+          "matriculados": 16,
+          "vagas_restantes": 26,
           "pre_matriculados": 9,
-          "disponiveis": 18
+          "disponiveis": 17
         },
         {
           "turma": "EFII - Candeias Teen I - 6º Ano - Turma B Manhã - Manhã",
           "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 6º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 40,
-          "novatos": 11,
+          "novatos": 12,
           "veteranos": 13,
-          "matriculados": 24,
-          "vagas_restantes": 16,
+          "matriculados": 25,
+          "vagas_restantes": 15,
           "pre_matriculados": 13,
-          "disponiveis": 3
+          "disponiveis": 2
         },
         {
           "turma": "EFII - Candeias Teen I- 6º Ano - Turma A Manhã - Manhã",
@@ -906,10 +894,10 @@
           "segmento": "Fund. 2",
           "vagas": 42,
           "novatos": 3,
-          "veteranos": 18,
-          "matriculados": 21,
-          "vagas_restantes": 21,
-          "pre_matriculados": 9,
+          "veteranos": 19,
+          "matriculados": 22,
+          "vagas_restantes": 20,
+          "pre_matriculados": 8,
           "disponiveis": 12
         },
         {
@@ -929,12 +917,12 @@
           "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 7º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 5,
-          "veteranos": 23,
-          "matriculados": 28,
-          "vagas_restantes": 17,
-          "pre_matriculados": 24,
-          "disponiveis": -7
+          "novatos": 7,
+          "veteranos": 24,
+          "matriculados": 31,
+          "vagas_restantes": 14,
+          "pre_matriculados": 23,
+          "disponiveis": -9
         },
         {
           "turma": "EFII - Candeias Teen I- 7º Ano - Turma A Tarde - Tarde",
@@ -949,40 +937,28 @@
           "disponiveis": 6
         },
         {
-          "turma": "EFII - Candeias Teen I - 8º Ano - Turma C Manhã - Manhã",
-          "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 8º Ano / 2026",
-          "segmento": "Fund. 2",
-          "vagas": 45,
-          "novatos": 1,
-          "veteranos": 0,
-          "matriculados": 1,
-          "vagas_restantes": 44,
-          "pre_matriculados": 1,
-          "disponiveis": 43
-        },
-        {
           "turma": "EFII - Candeias Teen I - 8º Ano - Turma A Manhã - Manhã",
           "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 8º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 7,
+          "novatos": 8,
           "veteranos": 34,
-          "matriculados": 41,
-          "vagas_restantes": 4,
-          "pre_matriculados": 0,
-          "disponiveis": 4
+          "matriculados": 42,
+          "vagas_restantes": 3,
+          "pre_matriculados": 1,
+          "disponiveis": 2
         },
         {
           "turma": "EFII - Candeias Teen I- 8º Ano - Turma B Manhã - Manhã",
           "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 8º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 1,
-          "veteranos": 25,
-          "matriculados": 26,
-          "vagas_restantes": 19,
-          "pre_matriculados": 17,
-          "disponiveis": 2
+          "novatos": 3,
+          "veteranos": 27,
+          "matriculados": 30,
+          "vagas_restantes": 15,
+          "pre_matriculados": 15,
+          "disponiveis": 0
         },
         {
           "turma": "EFII - Candeias Teen I- 8º Ano - Turma- A Tarde - Tarde",
@@ -1002,11 +978,11 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 2,
-          "veteranos": 31,
-          "matriculados": 33,
-          "vagas_restantes": 12,
+          "veteranos": 32,
+          "matriculados": 34,
+          "vagas_restantes": 11,
           "pre_matriculados": 16,
-          "disponiveis": -4
+          "disponiveis": -5
         },
         {
           "turma": "EFII - Candeias Teen II- 9º Ano - Turma A Tarde - Tarde",
@@ -1026,35 +1002,23 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 2,
-          "veteranos": 32,
-          "matriculados": 34,
-          "vagas_restantes": 11,
-          "pre_matriculados": 9,
-          "disponiveis": 2
-        },
-        {
-          "turma": "EFII - Candeias Teen II- 9º Ano - Turma c -Manhã - Manhã",
-          "curso": "2- CD - Ensino Fundamental II - Unidade Candeias / 9º Ano / 2026",
-          "segmento": "Fund. 2",
-          "vagas": 45,
-          "novatos": 0,
-          "veteranos": 0,
-          "matriculados": 0,
-          "vagas_restantes": 45,
-          "pre_matriculados": 0,
-          "disponiveis": 45
+          "veteranos": 34,
+          "matriculados": 36,
+          "vagas_restantes": 9,
+          "pre_matriculados": 6,
+          "disponiveis": 3
         },
         {
           "turma": "1ª Série - Médio - Turma B Manhã - Manhã",
           "curso": "2- CD - Ensino Médio - Unidade Candeias / 1º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 10,
-          "veteranos": 14,
-          "matriculados": 24,
-          "vagas_restantes": 21,
+          "novatos": 11,
+          "veteranos": 16,
+          "matriculados": 27,
+          "vagas_restantes": 18,
           "pre_matriculados": 0,
-          "disponiveis": 21
+          "disponiveis": 18
         },
         {
           "turma": "1ª Série - Médio - Turma C Manhã - Manhã",
@@ -1065,8 +1029,8 @@
           "veteranos": 19,
           "matriculados": 21,
           "vagas_restantes": 24,
-          "pre_matriculados": 17,
-          "disponiveis": 7
+          "pre_matriculados": 16,
+          "disponiveis": 8
         },
         {
           "turma": "1ª Série - Médio - Turma A Manhã - Manhã",
@@ -1074,35 +1038,35 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 8,
-          "veteranos": 23,
-          "matriculados": 31,
-          "vagas_restantes": 14,
+          "veteranos": 24,
+          "matriculados": 32,
+          "vagas_restantes": 13,
           "pre_matriculados": 14,
-          "disponiveis": 0
+          "disponiveis": -1
         },
         {
           "turma": "2ª Série - Médio - Turma B- Manhã - Manhã",
           "curso": "2- CD - Ensino Médio - Unidade Candeias / 2º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 7,
+          "novatos": 8,
           "veteranos": 21,
-          "matriculados": 28,
-          "vagas_restantes": 17,
+          "matriculados": 29,
+          "vagas_restantes": 16,
           "pre_matriculados": 0,
-          "disponiveis": 17
+          "disponiveis": 16
         },
         {
           "turma": "2ª Série - Médio - Turma A - Manhã - Manhã",
           "curso": "2- CD - Ensino Médio - Unidade Candeias / 2º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 2,
+          "novatos": 3,
           "veteranos": 18,
-          "matriculados": 20,
-          "vagas_restantes": 25,
+          "matriculados": 21,
+          "vagas_restantes": 24,
           "pre_matriculados": 12,
-          "disponiveis": 13
+          "disponiveis": 12
         },
         {
           "turma": "2ª Série - Médio - Turma C- Manhã - Manhã",
@@ -1110,10 +1074,10 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 1,
-          "veteranos": 23,
-          "matriculados": 24,
-          "vagas_restantes": 21,
-          "pre_matriculados": 18,
+          "veteranos": 24,
+          "matriculados": 25,
+          "vagas_restantes": 20,
+          "pre_matriculados": 17,
           "disponiveis": 3
         },
         {
@@ -1122,11 +1086,11 @@
           "segmento": "Ens. Médio",
           "vagas": 45,
           "novatos": 5,
-          "veteranos": 23,
-          "matriculados": 28,
-          "vagas_restantes": 17,
-          "pre_matriculados": 66,
-          "disponiveis": -49
+          "veteranos": 25,
+          "matriculados": 30,
+          "vagas_restantes": 15,
+          "pre_matriculados": 62,
+          "disponiveis": -47
         },
         {
           "turma": "3ª Série - Médio - Turma C Manhã - Manhã",
@@ -1134,10 +1098,10 @@
           "segmento": "Ens. Médio",
           "vagas": 35,
           "novatos": 1,
-          "veteranos": 20,
-          "matriculados": 21,
-          "vagas_restantes": 14,
-          "pre_matriculados": 14,
+          "veteranos": 21,
+          "matriculados": 22,
+          "vagas_restantes": 13,
+          "pre_matriculados": 13,
           "disponiveis": 0
         },
         {
@@ -1163,12 +1127,12 @@
           "curso": "3- JG - Ensino Infantil - Unidade Janga / Infantil II / 2026",
           "segmento": "Ed. Infantil",
           "vagas": 14,
-          "novatos": 4,
+          "novatos": 5,
           "veteranos": 1,
-          "matriculados": 5,
-          "vagas_restantes": 9,
+          "matriculados": 6,
+          "vagas_restantes": 8,
           "pre_matriculados": 0,
-          "disponiveis": 9
+          "disponiveis": 8
         },
         {
           "turma": "Infantil II - A T JANGA - Tarde",
@@ -1211,12 +1175,12 @@
           "curso": "3- JG - Ensino Infantil - Unidade Janga / Infantil IV / 2026",
           "segmento": "Ed. Infantil",
           "vagas": 20,
-          "novatos": 6,
+          "novatos": 7,
           "veteranos": 6,
-          "matriculados": 12,
-          "vagas_restantes": 8,
+          "matriculados": 13,
+          "vagas_restantes": 7,
           "pre_matriculados": 17,
-          "disponiveis": -9
+          "disponiveis": -10
         },
         {
           "turma": "Infantil IV - A T JANGA - Tarde",
@@ -1272,10 +1236,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 20,
           "novatos": 5,
-          "veteranos": 3,
-          "matriculados": 8,
-          "vagas_restantes": 12,
-          "pre_matriculados": 5,
+          "veteranos": 4,
+          "matriculados": 9,
+          "vagas_restantes": 11,
+          "pre_matriculados": 4,
           "disponiveis": 7
         },
         {
@@ -1283,12 +1247,12 @@
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 1º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 25,
-          "novatos": 4,
+          "novatos": 5,
           "veteranos": 12,
-          "matriculados": 16,
-          "vagas_restantes": 9,
+          "matriculados": 17,
+          "vagas_restantes": 8,
           "pre_matriculados": 4,
-          "disponiveis": 5
+          "disponiveis": 4
         },
         {
           "turma": "1º Ano EF1 - A T JANGA - Tarde",
@@ -1296,10 +1260,10 @@
           "segmento": "Fund. 1",
           "vagas": 25,
           "novatos": 0,
-          "veteranos": 7,
-          "matriculados": 7,
-          "vagas_restantes": 18,
-          "pre_matriculados": 6,
+          "veteranos": 8,
+          "matriculados": 8,
+          "vagas_restantes": 17,
+          "pre_matriculados": 5,
           "disponiveis": 12
         },
         {
@@ -1307,24 +1271,24 @@
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 2º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 30,
-          "novatos": 5,
-          "veteranos": 16,
-          "matriculados": 21,
-          "vagas_restantes": 9,
-          "pre_matriculados": 11,
-          "disponiveis": -2
+          "novatos": 8,
+          "veteranos": 17,
+          "matriculados": 25,
+          "vagas_restantes": 5,
+          "pre_matriculados": 10,
+          "disponiveis": -5
         },
         {
           "turma": "2º Ano EF1 - B M JANGA - Manhã",
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 2º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 0,
-          "novatos": 0,
+          "novatos": 1,
           "veteranos": 0,
-          "matriculados": 0,
-          "vagas_restantes": 0,
+          "matriculados": 1,
+          "vagas_restantes": -1,
           "pre_matriculados": 0,
-          "disponiveis": 0
+          "disponiveis": -1
         },
         {
           "turma": "2ºAno EF1 - A T JANGA - Tarde",
@@ -1343,12 +1307,12 @@
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 3º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 30,
-          "novatos": 7,
+          "novatos": 8,
           "veteranos": 23,
-          "matriculados": 30,
-          "vagas_restantes": 0,
+          "matriculados": 31,
+          "vagas_restantes": -1,
           "pre_matriculados": 14,
-          "disponiveis": -14
+          "disponiveis": -15
         },
         {
           "turma": "3º Ano EF1 A T Janga - Turma A - Tarde",
@@ -1356,10 +1320,10 @@
           "segmento": "Fund. 1",
           "vagas": 30,
           "novatos": 3,
-          "veteranos": 10,
-          "matriculados": 13,
-          "vagas_restantes": 17,
-          "pre_matriculados": 18,
+          "veteranos": 11,
+          "matriculados": 14,
+          "vagas_restantes": 16,
+          "pre_matriculados": 17,
           "disponiveis": -1
         },
         {
@@ -1391,24 +1355,24 @@
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 5º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 35,
-          "novatos": 3,
+          "novatos": 5,
           "veteranos": 24,
-          "matriculados": 27,
-          "vagas_restantes": 8,
+          "matriculados": 29,
+          "vagas_restantes": 6,
           "pre_matriculados": 10,
-          "disponiveis": -2
+          "disponiveis": -4
         },
         {
           "turma": "5º Ano EF1 - A T Janga - Turma A - Tarde",
           "curso": "3- JG- Ensino Fundamental I - Unidade Janga / 5º ANO / 2026",
           "segmento": "Fund. 1",
           "vagas": 35,
-          "novatos": 3,
+          "novatos": 4,
           "veteranos": 8,
-          "matriculados": 11,
-          "vagas_restantes": 24,
+          "matriculados": 12,
+          "vagas_restantes": 23,
           "pre_matriculados": 10,
-          "disponiveis": 14
+          "disponiveis": 13
         },
         {
           "turma": "5º Ano EF1 - B M Janga - Turma B - Manhã",
@@ -1427,12 +1391,12 @@
           "curso": "3- JG- Ensino Fundamental II - Unidade Janga / 6º ANO / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 0,
+          "novatos": 1,
           "veteranos": 25,
-          "matriculados": 25,
-          "vagas_restantes": 20,
+          "matriculados": 26,
+          "vagas_restantes": 19,
           "pre_matriculados": 14,
-          "disponiveis": 6
+          "disponiveis": 5
         },
         {
           "turma": "6º Ano A EF2 - T JANGA - Tarde",
@@ -1452,10 +1416,10 @@
           "segmento": "Fund. 2",
           "vagas": 35,
           "novatos": 12,
-          "veteranos": 17,
-          "matriculados": 29,
-          "vagas_restantes": 6,
-          "pre_matriculados": 15,
+          "veteranos": 19,
+          "matriculados": 31,
+          "vagas_restantes": 4,
+          "pre_matriculados": 13,
           "disponiveis": -9
         },
         {
@@ -1464,10 +1428,10 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 0,
-          "veteranos": 25,
-          "matriculados": 25,
-          "vagas_restantes": 20,
-          "pre_matriculados": 31,
+          "veteranos": 26,
+          "matriculados": 26,
+          "vagas_restantes": 19,
+          "pre_matriculados": 30,
           "disponiveis": -11
         },
         {
@@ -1512,23 +1476,23 @@
           "segmento": "Fund. 2",
           "vagas": 45,
           "novatos": 1,
-          "veteranos": 14,
-          "matriculados": 15,
-          "vagas_restantes": 30,
-          "pre_matriculados": 12,
-          "disponiveis": 18
+          "veteranos": 17,
+          "matriculados": 18,
+          "vagas_restantes": 27,
+          "pre_matriculados": 10,
+          "disponiveis": 17
         },
         {
           "turma": "8º Ano B EF2 - M JANGA - Manhã",
           "curso": "3- JG- Ensino Fundamental II - Unidade Janga / 8º ANO / 2026",
           "segmento": "Fund. 2",
           "vagas": 45,
-          "novatos": 10,
+          "novatos": 11,
           "veteranos": 1,
-          "matriculados": 11,
-          "vagas_restantes": 34,
+          "matriculados": 12,
+          "vagas_restantes": 33,
           "pre_matriculados": 0,
-          "disponiveis": 34
+          "disponiveis": 33
         },
         {
           "turma": "9º Ano EF2 - MA JANGA - Manhã",
@@ -1563,20 +1527,20 @@
           "veteranos": 21,
           "matriculados": 24,
           "vagas_restantes": 36,
-          "pre_matriculados": 30,
-          "disponiveis": 6
+          "pre_matriculados": 29,
+          "disponiveis": 7
         },
         {
           "turma": "1ª Série - Médio - B Manhã - Manhã",
           "curso": "3- JG- Ensino Médio - Unidade Janga / 1ª Série / 2026",
           "segmento": "Ens. Médio",
           "vagas": 60,
-          "novatos": 24,
-          "veteranos": 1,
-          "matriculados": 25,
-          "vagas_restantes": 35,
-          "pre_matriculados": 23,
-          "disponiveis": 12
+          "novatos": 26,
+          "veteranos": 2,
+          "matriculados": 28,
+          "vagas_restantes": 32,
+          "pre_matriculados": 22,
+          "disponiveis": 10
         },
         {
           "turma": "2ª Série - Médio - B Manhã - Manhã",
@@ -1595,24 +1559,24 @@
           "curso": "3- JG- Ensino Médio - Unidade Janga / 2ª Série / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 0,
+          "novatos": 1,
           "veteranos": 22,
-          "matriculados": 22,
-          "vagas_restantes": 23,
+          "matriculados": 23,
+          "vagas_restantes": 22,
           "pre_matriculados": 1,
-          "disponiveis": 22
+          "disponiveis": 21
         },
         {
           "turma": "3ª Série - Médio - A Manhã - Manhã",
           "curso": "3- JG- Ensino Médio - Unidade Janga / 3ª Série / 2026",
           "segmento": "Ens. Médio",
           "vagas": 45,
-          "novatos": 8,
-          "veteranos": 25,
-          "matriculados": 33,
-          "vagas_restantes": 12,
+          "novatos": 10,
+          "veteranos": 27,
+          "matriculados": 37,
+          "vagas_restantes": 8,
           "pre_matriculados": 0,
-          "disponiveis": 12
+          "disponiveis": 8
         }
       ]
     },
@@ -1650,10 +1614,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 25,
           "novatos": 1,
-          "veteranos": 14,
-          "matriculados": 15,
-          "vagas_restantes": 10,
-          "pre_matriculados": 3,
+          "veteranos": 15,
+          "matriculados": 16,
+          "vagas_restantes": 9,
+          "pre_matriculados": 2,
           "disponiveis": 7
         },
         {
@@ -1673,12 +1637,12 @@
           "curso": "4- CDR - Educação Infantil - Unidade Cordeiro / Infantil IV / 2026",
           "segmento": "Ed. Infantil",
           "vagas": 25,
-          "novatos": 5,
+          "novatos": 6,
           "veteranos": 11,
-          "matriculados": 16,
-          "vagas_restantes": 9,
+          "matriculados": 17,
+          "vagas_restantes": 8,
           "pre_matriculados": 6,
-          "disponiveis": 3
+          "disponiveis": 2
         },
         {
           "turma": "Infantil IV - Turma A Tarde - Cordeiro - Tarde",
@@ -1722,10 +1686,10 @@
           "segmento": "Ed. Infantil",
           "vagas": 25,
           "novatos": 2,
-          "veteranos": 7,
-          "matriculados": 9,
-          "vagas_restantes": 16,
-          "pre_matriculados": 3,
+          "veteranos": 8,
+          "matriculados": 10,
+          "vagas_restantes": 15,
+          "pre_matriculados": 2,
           "disponiveis": 13
         },
         {
@@ -1757,12 +1721,12 @@
           "curso": "4- CDR - Ensino Fundamental I - Unidade Cordeiro / 1º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 25,
-          "novatos": 3,
+          "novatos": 4,
           "veteranos": 12,
-          "matriculados": 15,
-          "vagas_restantes": 10,
+          "matriculados": 16,
+          "vagas_restantes": 9,
           "pre_matriculados": 2,
-          "disponiveis": 8
+          "disponiveis": 7
         },
         {
           "turma": "2º Ano - Turma A Manhã - Cordeiro - Manhã",
@@ -1793,12 +1757,12 @@
           "curso": "4- CDR - Ensino Fundamental I - Unidade Cordeiro / 2º Ano / 2026",
           "segmento": "Fund. 1",
           "vagas": 30,
-          "novatos": 6,
-          "veteranos": 10,
-          "matriculados": 16,
-          "vagas_restantes": 14,
-          "pre_matriculados": 10,
-          "disponiveis": 4
+          "novatos": 7,
+          "veteranos": 11,
+          "matriculados": 18,
+          "vagas_restantes": 12,
+          "pre_matriculados": 9,
+          "disponiveis": 3
         },
         {
           "turma": "3º Ano - Turma A Manhã - Cordeiro - Manhã",
@@ -1878,10 +1842,10 @@
           "segmento": "Fund. 1",
           "vagas": 35,
           "novatos": 6,
-          "veteranos": 19,
-          "matriculados": 25,
-          "vagas_restantes": 10,
-          "pre_matriculados": 8,
+          "veteranos": 21,
+          "matriculados": 27,
+          "vagas_restantes": 8,
+          "pre_matriculados": 6,
           "disponiveis": 2
         },
         {
@@ -1925,12 +1889,12 @@
           "curso": "4- CDR - Ensino Fundamental II - Unidade Cordeiro / 6º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 40,
-          "novatos": 10,
+          "novatos": 12,
           "veteranos": 11,
-          "matriculados": 21,
-          "vagas_restantes": 19,
+          "matriculados": 23,
+          "vagas_restantes": 17,
           "pre_matriculados": 12,
-          "disponiveis": 7
+          "disponiveis": 5
         },
         {
           "turma": "6º Ano - Turma C Manhã - Cordeiro - Manhã",
@@ -1950,10 +1914,10 @@
           "segmento": "Fund. 2",
           "vagas": 40,
           "novatos": 15,
-          "veteranos": 53,
-          "matriculados": 68,
-          "vagas_restantes": -28,
-          "pre_matriculados": 36,
+          "veteranos": 58,
+          "matriculados": 73,
+          "vagas_restantes": -33,
+          "pre_matriculados": 31,
           "disponiveis": -64
         },
         {
@@ -1974,10 +1938,10 @@
           "segmento": "Fund. 2",
           "vagas": 40,
           "novatos": 5,
-          "veteranos": 20,
-          "matriculados": 25,
-          "vagas_restantes": 15,
-          "pre_matriculados": 18,
+          "veteranos": 21,
+          "matriculados": 26,
+          "vagas_restantes": 14,
+          "pre_matriculados": 17,
           "disponiveis": -3
         },
         {
@@ -1985,48 +1949,48 @@
           "curso": "4- CDR - Ensino Fundamental II - Unidade Cordeiro / 8º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 40,
-          "novatos": 15,
+          "novatos": 17,
           "veteranos": 0,
-          "matriculados": 15,
-          "vagas_restantes": 25,
+          "matriculados": 17,
+          "vagas_restantes": 23,
           "pre_matriculados": 0,
-          "disponiveis": 25
+          "disponiveis": 23
         },
         {
           "turma": "9º Ano - Turma A Manhã - Cordeiro - Manhã",
           "curso": "4- CDR - Ensino Fundamental II - Unidade Cordeiro / 9º Ano / 2026",
           "segmento": "Fund. 2",
           "vagas": 40,
-          "novatos": 22,
-          "veteranos": 42,
-          "matriculados": 64,
-          "vagas_restantes": -24,
-          "pre_matriculados": 26,
-          "disponiveis": -50
+          "novatos": 23,
+          "veteranos": 43,
+          "matriculados": 66,
+          "vagas_restantes": -26,
+          "pre_matriculados": 25,
+          "disponiveis": -51
         },
         {
           "turma": "1ª Série - Médio - A Manhã - Manhã",
           "curso": "4- CDR - Ensino Médio - Unidade Cordeiro / 1º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 48,
-          "novatos": 16,
+          "novatos": 18,
           "veteranos": 15,
-          "matriculados": 31,
-          "vagas_restantes": 17,
+          "matriculados": 33,
+          "vagas_restantes": 15,
           "pre_matriculados": 28,
-          "disponiveis": -11
+          "disponiveis": -13
         },
         {
           "turma": "2ª Série - Médio - A Manhã - Manhã",
           "curso": "4- CDR - Ensino Médio - Unidade Cordeiro / 2º Ano Médio / 2026",
           "segmento": "Ens. Médio",
           "vagas": 48,
-          "novatos": 11,
+          "novatos": 12,
           "veteranos": 27,
-          "matriculados": 38,
-          "vagas_restantes": 10,
+          "matriculados": 39,
+          "vagas_restantes": 9,
           "pre_matriculados": 10,
-          "disponiveis": 0
+          "disponiveis": -1
         },
         {
           "turma": "3ª Série - Médio - A Manhã - Manhã",

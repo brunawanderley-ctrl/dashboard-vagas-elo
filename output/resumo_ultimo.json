@@ -1,5 +1,5 @@
 {
-  "data_extracao": "2026-01-12T21:40:51.065082",
+  "data_extracao": "2026-01-14T21:39:28.952711",
   "periodo": "2026",
   "unidades": [
     {
@@ -8,39 +8,39 @@
       "segmentos": {
         "Ed. Infantil": {
           "vagas": 245,
-          "novatos": 25,
-          "veteranos": 57,
-          "matriculados": 82,
-          "disponiveis": 101
+          "novatos": 26,
+          "veteranos": 65,
+          "matriculados": 91,
+          "disponiveis": 100
         },
         "Fund. 1": {
           "vagas": 520,
-          "novatos": 44,
-          "veteranos": 192,
-          "matriculados": 236,
-          "disponiveis": 103
+          "novatos": 49,
+          "veteranos": 205,
+          "matriculados": 254,
+          "disponiveis": 97
         },
         "Fund. 2": {
-          "vagas": 561,
-          "novatos": 58,
-          "veteranos": 211,
-          "matriculados": 269,
-          "disponiveis": 121
+          "vagas": 516,
+          "novatos": 63,
+          "veteranos": 228,
+          "matriculados": 291,
+          "disponiveis": 65
         },
         "Ens. Médio": {
           "vagas": 325,
-          "novatos": 26,
-          "veteranos": 152,
-          "matriculados": 178,
+          "novatos": 28,
+          "veteranos": 158,
+          "matriculados": 186,
           "disponiveis": 0
         }
       },
       "total": {
-        "vagas": 1651,
-        "novatos": 153,
-        "veteranos": 612,
-        "matriculados": 765,
-        "disponiveis": 325
+        "vagas": 1606,
+        "novatos": 166,
+        "veteranos": 656,
+        "matriculados": 822,
+        "disponiveis": 262
       }
     },
     {
@@ -49,39 +49,39 @@
       "segmentos": {
         "Ed. Infantil": {
           "vagas": 150,
-          "novatos": 34,
-          "veteranos": 44,
-          "matriculados": 78,
-          "disponiveis": 32
+          "novatos": 35,
+          "veteranos": 47,
+          "matriculados": 82,
+          "disponiveis": 31
         },
         "Fund. 1": {
           "vagas": 465,
-          "novatos": 61,
-          "veteranos": 143,
-          "matriculados": 204,
-          "disponiveis": 101
+          "novatos": 64,
+          "veteranos": 148,
+          "matriculados": 212,
+          "disponiveis": 98
         },
         "Fund. 2": {
-          "vagas": 619,
-          "novatos": 57,
-          "veteranos": 231,
-          "matriculados": 288,
-          "disponiveis": 166
+          "vagas": 529,
+          "novatos": 63,
+          "veteranos": 238,
+          "matriculados": 301,
+          "disponiveis": 70
         },
         "Ens. Médio": {
           "vagas": 395,
-          "novatos": 38,
-          "veteranos": 179,
-          "matriculados": 217,
-          "disponiveis": 19
+          "novatos": 41,
+          "veteranos": 186,
+          "matriculados": 227,
+          "disponiveis": 16
         }
       },
       "total": {
-        "vagas": 1629,
-        "novatos": 190,
-        "veteranos": 597,
-        "matriculados": 787,
-        "disponiveis": 318
+        "vagas": 1539,
+        "novatos": 203,
+        "veteranos": 619,
+        "matriculados": 822,
+        "disponiveis": 215
       }
     },
     {
@@ -90,39 +90,39 @@
       "segmentos": {
         "Ed. Infantil": {
           "vagas": 158,
-          "novatos": 28,
-          "veteranos": 52,
-          "matriculados": 80,
-          "disponiveis": 51
+          "novatos": 30,
+          "veteranos": 53,
+          "matriculados": 83,
+          "disponiveis": 49
         },
         "Fund. 1": {
           "vagas": 310,
-          "novatos": 33,
-          "veteranos": 135,
-          "matriculados": 168,
-          "disponiveis": 43
+          "novatos": 42,
+          "veteranos": 138,
+          "matriculados": 180,
+          "disponiveis": 34
         },
         "Fund. 2": {
           "vagas": 520,
-          "novatos": 51,
-          "veteranos": 180,
-          "matriculados": 231,
-          "disponiveis": 133
+          "novatos": 53,
+          "veteranos": 186,
+          "matriculados": 239,
+          "disponiveis": 130
         },
         "Ens. Médio": {
           "vagas": 255,
-          "novatos": 42,
-          "veteranos": 79,
-          "matriculados": 121,
-          "disponiveis": 80
+          "novatos": 47,
+          "veteranos": 82,
+          "matriculados": 129,
+          "disponiveis": 74
         }
       },
       "total": {
         "vagas": 1243,
-        "novatos": 154,
-        "veteranos": 446,
-        "matriculados": 600,
-        "disponiveis": 307
+        "novatos": 172,
+        "veteranos": 459,
+        "matriculados": 631,
+        "disponiveis": 287
       }
     },
     {
@@ -131,47 +131,47 @@
       "segmentos": {
         "Ed. Infantil": {
           "vagas": 205,
-          "novatos": 25,
-          "veteranos": 46,
-          "matriculados": 71,
-          "disponiveis": 119
+          "novatos": 26,
+          "veteranos": 48,
+          "matriculados": 74,
+          "disponiveis": 118
         },
         "Fund. 1": {
           "vagas": 465,
-          "novatos": 65,
-          "veteranos": 142,
-          "matriculados": 207,
-          "disponiveis": 204
+          "novatos": 67,
+          "veteranos": 145,
+          "matriculados": 212,
+          "disponiveis": 202
         },
         "Fund. 2": {
           "vagas": 320,
-          "novatos": 79,
-          "veteranos": 148,
-          "matriculados": 227,
-          "disponiveis": -5
+          "novatos": 84,
+          "veteranos": 155,
+          "matriculados": 239,
+          "disponiveis": -10
         },
         "Ens. Médio": {
           "vagas": 146,
-          "novatos": 29,
+          "novatos": 32,
           "veteranos": 50,
-          "matriculados": 79,
-          "disponiveis": 11
+          "matriculados": 82,
+          "disponiveis": 8
         }
       },
       "total": {
         "vagas": 1136,
-        "novatos": 198,
-        "veteranos": 386,
-        "matriculados": 584,
-        "disponiveis": 329
+        "novatos": 209,
+        "veteranos": 398,
+        "matriculados": 607,
+        "disponiveis": 318
       }
     }
   ],
   "total_geral": {
-    "vagas": 5659,
-    "novatos": 695,
-    "veteranos": 2041,
-    "matriculados": 2736,
-    "disponiveis": 1279
+    "vagas": 5524,
+    "novatos": 750,
+    "veteranos": 2132,
+    "matriculados": 2882,
+    "disponiveis": 1082
   }
 }
