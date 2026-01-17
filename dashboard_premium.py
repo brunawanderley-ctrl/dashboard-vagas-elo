@@ -245,7 +245,7 @@ def criar_grafico_segmentos(_resumo_str):
         for seg, v in segmentos_total.items()
     ])
 
-    ordem = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
+    ordem = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
     df_seg['ordem'] = df_seg['Segmento'].map({s: i for i, s in enumerate(ordem)})
     df_seg = df_seg.sort_values('ordem')
 
@@ -285,7 +285,7 @@ def criar_grafico_segmentos(_resumo_str):
 def criar_heatmap_ocupacao(_resumo_str):
     """Cria heatmap de ocupação (cached)"""
     resumo = json.loads(_resumo_str)
-    ordem_seg = ['Ed. Infantil', 'Fund. 1', 'Fund. 2', 'Ens. Médio']
+    ordem_seg = ['Ed. Infantil', 'Fund. I', 'Fund. II', 'Ens. Médio']
 
     matriz = []
     unidades = []
@@ -351,8 +351,8 @@ def criar_df_turmas_detail(_vagas_str):
     }).reset_index()
     result.columns = ['Unidade', 'Segmento', 'Turno', 'Qtd Turmas', 'Vagas', 'Matriculados']
     result['Unidade'] = result['Unidade'].apply(extrair_nome_curto)
-    result['Ocupação %'] = (result['Matriculados'] / result['Vagas'] * 100).round(1)
-    ordem_seg = {'Ed. Infantil': 1, 'Fund. 1': 2, 'Fund. 2': 3, 'Ens. Médio': 4}
+    result['Ocupação %'] = result.apply(lambda r: round(r['Matriculados'] / r['Vagas'] * 100, 1) if r['Vagas'] > 0 else 0.0, axis=1)
+    ordem_seg = {'Ed. Infantil': 1, 'Fund. I': 2, 'Fund. II': 3, 'Ens. Médio': 4}
     result['ordem_seg'] = result['Segmento'].map(ordem_seg).fillna(5)
     result = result.sort_values(['Unidade', 'ordem_seg', 'Turno'])
     return result
@@ -366,11 +366,11 @@ def criar_df_perf_unidade(_resumo_str):
     }).reset_index()
     result['Meta'] = result['Unidade'].apply(lambda x: get_meta_unidade(x, 'matriculas'))
     result['Gap'] = result['Matriculados'] - result['Meta']
-    result['Atingimento'] = (result['Matriculados'] / result['Meta'] * 100).round(1)
+    result['Atingimento'] = result.apply(lambda r: round(r['Matriculados'] / r['Meta'] * 100, 1) if r['Meta'] > 0 else 0.0, axis=1)
     result['Ocupacao'] = result.apply(lambda r: calcular_ocupacao(r['Matriculados'], r['Vagas']), axis=1)
     result['Meta_Novatos'] = result['Unidade'].apply(lambda x: get_meta_unidade(x, 'novatos'))
     result['Gap_Novatos'] = result['Novatos'] - result['Meta_Novatos']
-    result['Ating_Novatos'] = (result['Novatos'] / result['Meta_Novatos'] * 100).round(1)
+    result['Ating_Novatos'] = result.apply(lambda r: round(r['Novatos'] / r['Meta_Novatos'] * 100, 1) if r['Meta_Novatos'] > 0 else 0.0, axis=1)
     result['Nome_curto'] = result['Unidade'].apply(extrair_nome_curto)
     return result
 
@@ -1154,7 +1154,7 @@ if resumo_2025_path.exists():
 
     # Prepara dados para comparação
     dados_comp = []
-    segmentos_validos = ["Ed. Infantil", "Fund. 1", "Fund. 2", "Ens. Médio"]
+    segmentos_validos = ["Ed. Infantil", "Fund. I", "Fund. II", "Ens. Médio"]
 
     for unidade_2026 in resumo.get("unidades", []):
         codigo = unidade_2026["codigo"]
