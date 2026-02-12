@@ -1,0 +1,545 @@
+#!/usr/bin/env python3
+"""
+Dados de Pedido e Estoque Enviado - SAE (Livros)
+Colégio Elo - 1º Bimestre 2026
+"""
+
+# Pedido inicial + complementar
+# Formato: código -> (série, segmento, pedido_inicial, pedido_complementar)
+PEDIDO_SAE = {
+    901: ("Infantil II", "Infantil", 70, 0),
+    902: ("Infantil III", "Infantil", 136, 0),
+    903: ("Infantil IV", "Infantil", 130, 0),
+    904: ("Infantil V", "Infantil", 155, 0),
+    921: ("1º Ano", "Fund1", 180, 0),
+    920: ("2º Ano", "Fund1", 210, 25),  # Pedido complementar de 25
+    913: ("3º Ano", "Fund1", 220, 0),
+    914: ("4º Ano", "Fund1", 180, 0),
+    915: ("5º Ano", "Fund1", 260, 10),  # Pedido complementar de 10
+    916: ("6º Ano", "Fund2", 300, 0),
+    917: ("7º Ano", "Fund2", 300, 0),
+    918: ("8º Ano", "Fund2", 300, 0),
+    919: ("9º Ano", "Fund2", 280, 0),
+    912: ("1º Ano", "Médio", 250, 0),
+    991: ("2º Ano", "Médio", 220, 0),
+    992: ("3º Ano", "Médio", 90, 0),
+}
+
+# Estoque enviado por unidade (ATUALIZADO conforme planilha)
+# Formato: código -> {unidade: quantidade_enviada}
+# BV=Boa Viagem, CD=Candeias/Jaboatão, JG=Janga, CDR=Cordeiro
+ESTOQUE_ENVIADO = {
+    901: {"BV": 20, "CD": 20, "JG": 15, "CDR": 15},  # Infantil II
+    902: {"BV": 28, "CD": 36, "JG": 15, "CDR": 15},  # Infantil III
+    903: {"BV": 50, "CD": 30, "JG": 30, "CDR": 20},  # Infantil IV
+    904: {"BV": 49, "CD": 40, "JG": 36, "CDR": 36},  # Infantil V
+    921: {"BV": 50, "CD": 50, "JG": 40, "CDR": 40},  # 1º Ano Fund1
+    920: {"BV": 65, "CD": 55, "JG": 49, "CDR": 40},  # 2º Ano Fund1
+    913: {"BV": 70, "CD": 60, "JG": 50, "CDR": 40},  # 3º Ano Fund1
+    914: {"BV": 60, "CD": 40, "JG": 40, "CDR": 40},  # 4º Ano Fund1 (CORRIGIDO: BV era 50, agora 60; CD era 50, agora 40)
+    915: {"BV": 77, "CD": 63, "JG": 46, "CDR": 60},  # 5º Ano Fund1 (CORRIGIDO: BV=77, CD=63, JG=46)
+    916: {"BV": 94, "CD": 70, "JG": 50, "CDR": 59},  # 6º Ano Fund2 (CORRIGIDO: BV era 12, agora 94; CDR era 50, agora 59)
+    917: {"BV": 70, "CD": 70, "JG": 50, "CDR": 50},  # 7º Ano Fund2
+    918: {"BV": 70, "CD": 70, "JG": 50, "CDR": 50},  # 8º Ano Fund2
+    919: {"BV": 70, "CD": 70, "JG": 50, "CDR": 55},  # 9º Ano Fund2
+    912: {"BV": 70, "CD": 70, "JG": 40, "CDR": 40},  # 1º Ano Médio
+    991: {"BV": 50, "CD": 35, "JG": 40, "CDR": 40},  # 2º Ano Médio
+    992: {"BV": 25, "CD": 25, "JG": 20, "CDR": 20},  # 3º Ano Médio
+}
+
+# Mapeamento de unidade para nome completo
+UNIDADES = {
+    "BV": "Boa Viagem",
+    "CD": "Jaboatão",  # Candeias
+    "JG": "Janga",
+    "CDR": "Cordeiro"
+}
+
+# Ordem dos segmentos
+ORDEM_SEGMENTOS = ["Infantil", "Fund1", "Fund2", "Médio"]
+
+# Ajuste: Quantidade de alunos do ANO PASSADO (2025) por unidade
+# Esses alunos compraram livro mas são do ano passado, não contam como venda nova
+# Formato: código -> {unidade: quantidade_ajuste}
+AJUSTE_ANO_PASSADO = {
+    901: {"BV": 6, "CD": 1, "JG": 1, "CDR": 2},   # Infantil II
+    902: {"BV": 1, "CD": 1, "JG": 0, "CDR": 1},   # Infantil III
+    903: {"BV": 4, "CD": 1, "JG": 2, "CDR": 1},   # Infantil IV
+    904: {"BV": 3, "CD": 1, "JG": 1, "CDR": 0},   # Infantil V
+    921: {"BV": 6, "CD": 4, "JG": 3, "CDR": 2},   # 1º Ano Fund1
+    920: {"BV": 2, "CD": 3, "JG": 1, "CDR": 0},   # 2º Ano Fund1
+    913: {"BV": 3, "CD": 3, "JG": 2, "CDR": 0},   # 3º Ano Fund1
+    914: {"BV": 3, "CD": 2, "JG": 4, "CDR": 1},   # 4º Ano Fund1
+    915: {"BV": 2, "CD": 5, "JG": 7, "CDR": 2},   # 5º Ano Fund1
+    916: {"BV": 1, "CD": 5, "JG": 3, "CDR": 0},   # 6º Ano Fund2
+    917: {"BV": 6, "CD": 2, "JG": 3, "CDR": 3},   # 7º Ano Fund2
+    918: {"BV": 2, "CD": 5, "JG": 2, "CDR": 0},   # 8º Ano Fund2
+    919: {"BV": 4, "CD": 3, "JG": 6, "CDR": 1},   # 9º Ano Fund2
+    912: {"BV": 2, "CD": 2, "JG": 2, "CDR": 1},   # 1º Ano Médio
+    991: {"BV": 2, "CD": 7, "JG": 2, "CDR": 0},   # 2º Ano Médio
+    992: {"BV": 0, "CD": 0, "JG": 1, "CDR": 1},   # 3º Ano Médio
+    995: {"BV": 6, "CD": 1, "JG": 3, "CDR": 0},   # Elo Tech (alunos sem SAE/Socio)
+}
+
+
+# Balanço físico (contagem real) por unidade e data
+# Formato: código -> {unidade: {data: quantidade}}
+# BV=Boa Viagem, CD=Candeias/Jaboatão, JG=Janga, CDR=Cordeiro (ainda não recebido)
+BALANCO_FISICO = {
+    # Balanço 29/01/2026
+    901: {"BV": {"29/01": 9}, "CD": {"29/01": 4}, "JG": {"29/01": 7}},      # Infantil II
+    902: {"BV": {"29/01": 4}, "CD": {"29/01": 2}, "JG": {"29/01": 0}},      # Infantil III
+    903: {"BV": {"29/01": 21}, "CD": {"29/01": 6}, "JG": {"29/01": 13}},    # Infantil IV
+    904: {"BV": {"29/01": 4}, "CD": {"29/01": 18}, "JG": {"29/01": 6}},     # Infantil V
+    921: {"BV": {"29/01": 1}, "CD": {"29/01": 17}, "JG": {"29/01": 9}},     # 1º Ano Fund1
+    920: {"BV": {"29/01": 2}, "CD": {"29/01": 10}, "JG": {"29/01": 12}},    # 2º Ano Fund1
+    913: {"BV": {"29/01": 22}, "CD": {"29/01": 23}, "JG": {"29/01": 10}},   # 3º Ano Fund1
+    914: {"BV": {"29/01": 20}, "CD": {"29/01": 4}, "JG": {"29/01": 8}},     # 4º Ano Fund1
+    915: {"BV": {"29/01": 33}, "CD": {"29/01": 15}, "JG": {"29/01": 33}},   # 5º Ano Fund1
+    916: {"BV": {"29/01": 7}, "CD": {"29/01": 22}, "JG": {"29/01": 0}},     # 6º Ano Fund2
+    917: {"BV": {"29/01": 17}, "CD": {"29/01": 6}, "JG": {"29/01": 10}},    # 7º Ano Fund2
+    918: {"BV": {"29/01": 9}, "CD": {"29/01": 6}, "JG": {"29/01": 1}},      # 8º Ano Fund2
+    919: {"BV": {"29/01": 3}, "CD": {"29/01": 37}, "JG": {"29/01": 28}},    # 9º Ano Fund2
+    912: {"BV": {"29/01": 0}, "CD": {"29/01": 35}, "JG": {"29/01": 14}},    # 1º Ano Médio (BV não informado)
+    991: {"BV": {"29/01": 0}, "CD": {"29/01": 3}, "JG": {"29/01": 17}},     # 2º Ano Médio (BV não informado)
+    992: {"BV": {"29/01": 0}, "CD": {"29/01": 5}, "JG": {"29/01": 14}},     # 3º Ano Médio (BV não informado)
+}
+
+
+# Alunos Elo Tech com pagamento "Em aberto" (faturados mas não pagos)
+# Incluídos para contagem completa conforme relatório financeiro SIGA 11/02/2026
+# Formato: (matricula, nome, unidade, serie_pdf)
+ELOTECH_EM_ABERTO = [
+    # BV - 8 alunos
+    ("1-94018", "Linda de Melo Cysneiros", "BV", "2º Ano"),
+    ("1-10930", "Lion Cesar da Silva Freitas", "BV", "2º Ano"),
+    ("1-8078", "Ravenna Barros Ferreira", "BV", "2º Ano"),
+    ("1-10929", "Maria Valentina da Silva Freitas", "BV", "4º Ano"),
+    ("1-94019", "Guilherme de Melo Cysneiros", "BV", "4º Ano"),
+    ("1-7961", "Marina Vitória Benthien Chagas", "BV", "5º Ano"),
+    ("1-8367", "Jorge Frederico Araújo Ferreira Tozer", "BV", "5º Ano"),
+    ("92239", "Miguel Henrique Franco de Oliveira Souza", "BV", "5º Ano"),
+    # CD - 11 alunos
+    ("2-8335", "Benjamin Ferro Torres", "CD", "2º Ano"),
+    ("2-91680", "Melissa dos Santos Silva", "CD", "2º Ano"),
+    ("2-9846", "Joaquim Montarroyos Lira", "CD", "2º Ano"),
+    ("2-7146", "Maysa Maria dos Santos Barbosa", "CD", "3º Ano"),
+    ("23281", "Lorena Vitória da Silva", "CD", "4º Ano"),
+    ("24253", "Maria Júlia Belmiro Evaristo", "CD", "4º Ano"),
+    ("24360", "Julia Severo dos Santos Cunha", "CD", "4º Ano"),
+    ("2-10559", "Rafael Duarte Macario", "CD", "5º Ano"),
+    ("24362", "Carlos Alexandre de Souza Cunha Neto", "CD", "5º Ano"),
+    ("2-6834", "Laura Valentina Feitosa Ramos", "CD", "5º Ano"),
+    ("2-8362", "Valentina Castelo Branco Guizelini", "CD", "5º Ano"),
+]
+
+
+# Mapa autoritativo: (matricula, unidade) -> serie (do financeiro SIGA)
+# Gerado automaticamente dos PDFs ELO TECH BV.pdf e ELO TECH CD.pdf
+# BV: 208 alunos | CD: 180 alunos
+ELOTECH_SERIE_PDF = {
+    ("1-10374", "BV"): "2º Ano",
+    ("1-10766", "BV"): "2º Ano",
+    ("1-10805", "BV"): "2º Ano",
+    ("1-10848", "BV"): "2º Ano",
+    ("1-10928", "BV"): "2º Ano",
+    ("1-10930", "BV"): "2º Ano",
+    ("1-111871", "BV"): "2º Ano",
+    ("1-111895", "BV"): "2º Ano",
+    ("1-112158", "BV"): "2º Ano",
+    ("1-112349", "BV"): "2º Ano",
+    ("1-112362", "BV"): "2º Ano",
+    ("1-11417", "BV"): "2º Ano",
+    ("1-11425", "BV"): "2º Ano",
+    ("1-11731", "BV"): "2º Ano",
+    ("1-7762", "BV"): "2º Ano",
+    ("1-8078", "BV"): "2º Ano",
+    ("1-8109", "BV"): "2º Ano",
+    ("1-8123", "BV"): "2º Ano",
+    ("1-8345", "BV"): "2º Ano",
+    ("1-8440", "BV"): "2º Ano",
+    ("1-8580", "BV"): "2º Ano",
+    ("1-8596", "BV"): "2º Ano",
+    ("1-8621", "BV"): "2º Ano",
+    ("1-8757", "BV"): "2º Ano",
+    ("1-8862", "BV"): "2º Ano",
+    ("1-8873", "BV"): "2º Ano",
+    ("1-90542", "BV"): "2º Ano",
+    ("1-90631", "BV"): "2º Ano",
+    ("1-90849", "BV"): "2º Ano",
+    ("1-90922", "BV"): "2º Ano",
+    ("1-90940", "BV"): "2º Ano",
+    ("1-90982", "BV"): "2º Ano",
+    ("1-9102", "BV"): "2º Ano",
+    ("1-91177", "BV"): "2º Ano",
+    ("1-91506", "BV"): "2º Ano",
+    ("1-91787", "BV"): "2º Ano",
+    ("1-92499", "BV"): "2º Ano",
+    ("1-93438", "BV"): "2º Ano",
+    ("1-93465", "BV"): "2º Ano",
+    ("1-93522", "BV"): "2º Ano",
+    ("1-93647", "BV"): "2º Ano",
+    ("1-93658", "BV"): "2º Ano",
+    ("1-93756", "BV"): "2º Ano",
+    ("1-94018", "BV"): "2º Ano",
+    ("1-94118", "BV"): "2º Ano",
+    ("1-94188", "BV"): "2º Ano",
+    ("1-94330", "BV"): "2º Ano",
+    ("1-94333", "BV"): "2º Ano",
+    ("1-94344", "BV"): "2º Ano",
+    ("1-94458", "BV"): "2º Ano",
+    ("1-9581", "BV"): "2º Ano",
+    ("1-9648", "BV"): "2º Ano",
+    ("1-9706", "BV"): "2º Ano",
+    ("1-9801", "BV"): "2º Ano",
+    ("1-9805", "BV"): "2º Ano",
+    ("92104", "BV"): "2º Ano",
+    ("92244", "BV"): "2º Ano",
+    ("92255", "BV"): "2º Ano",
+    ("1-10138", "BV"): "3º Ano",
+    ("1-10161", "BV"): "3º Ano",
+    ("1-10219", "BV"): "3º Ano",
+    ("1-10381", "BV"): "3º Ano",
+    ("1-10445", "BV"): "3º Ano",
+    ("1-112217", "BV"): "3º Ano",
+    ("1-112258", "BV"): "3º Ano",
+    ("1-112315", "BV"): "3º Ano",
+    ("1-11465", "BV"): "3º Ano",
+    ("1-11793", "BV"): "3º Ano",
+    ("1-6337", "BV"): "3º Ano",
+    ("1-6907", "BV"): "3º Ano",
+    ("1-6969", "BV"): "3º Ano",
+    ("1-7966", "BV"): "3º Ano",
+    ("1-8055", "BV"): "3º Ano",
+    ("1-8056", "BV"): "3º Ano",
+    ("1-8069", "BV"): "3º Ano",
+    ("1-8112", "BV"): "3º Ano",
+    ("1-8265", "BV"): "3º Ano",
+    ("1-8324", "BV"): "3º Ano",
+    ("1-8336", "BV"): "3º Ano",
+    ("1-8842", "BV"): "3º Ano",
+    ("1-8918", "BV"): "3º Ano",
+    ("1-9006", "BV"): "3º Ano",
+    ("1-90662", "BV"): "3º Ano",
+    ("1-9098", "BV"): "3º Ano",
+    ("1-9110", "BV"): "3º Ano",
+    ("1-91483", "BV"): "3º Ano",
+    ("1-92757", "BV"): "3º Ano",
+    ("1-93480", "BV"): "3º Ano",
+    ("1-93856", "BV"): "3º Ano",
+    ("1-93920", "BV"): "3º Ano",
+    ("1-94062", "BV"): "3º Ano",
+    ("1-94078", "BV"): "3º Ano",
+    ("1-94233", "BV"): "3º Ano",
+    ("1-94238", "BV"): "3º Ano",
+    ("1-9533", "BV"): "3º Ano",
+    ("1-9592", "BV"): "3º Ano",
+    ("92164", "BV"): "3º Ano",
+    ("92377", "BV"): "3º Ano",
+    ("92402", "BV"): "3º Ano",
+    ("1-10530", "BV"): "4º Ano",
+    ("1-10791", "BV"): "4º Ano",
+    ("1-10929", "BV"): "4º Ano",
+    ("1-11100", "BV"): "4º Ano",
+    ("1-111924", "BV"): "4º Ano",
+    ("1-112207", "BV"): "4º Ano",
+    ("1-112366", "BV"): "4º Ano",
+    ("1-11385", "BV"): "4º Ano",
+    ("1-11424", "BV"): "4º Ano",
+    ("1-5069", "BV"): "4º Ano",
+    ("1-5546", "BV"): "4º Ano",
+    ("1-5788", "BV"): "4º Ano",
+    ("1-5876", "BV"): "4º Ano",
+    ("1-6109", "BV"): "4º Ano",
+    ("1-6350", "BV"): "4º Ano",
+    ("1-6769", "BV"): "4º Ano",
+    ("1-6777", "BV"): "4º Ano",
+    ("1-7034", "BV"): "4º Ano",
+    ("1-8165", "BV"): "4º Ano",
+    ("1-8307", "BV"): "4º Ano",
+    ("1-8441", "BV"): "4º Ano",
+    ("1-90556", "BV"): "4º Ano",
+    ("1-90677", "BV"): "4º Ano",
+    ("1-91485", "BV"): "4º Ano",
+    ("1-91544", "BV"): "4º Ano",
+    ("1-9201", "BV"): "4º Ano",
+    ("1-92472", "BV"): "4º Ano",
+    ("1-93341", "BV"): "4º Ano",
+    ("1-93598", "BV"): "4º Ano",
+    ("1-93843", "BV"): "4º Ano",
+    ("1-93846", "BV"): "4º Ano",
+    ("1-93851", "BV"): "4º Ano",
+    ("1-93899", "BV"): "4º Ano",
+    ("1-93929", "BV"): "4º Ano",
+    ("1-93961", "BV"): "4º Ano",
+    ("1-93971", "BV"): "4º Ano",
+    ("1-94019", "BV"): "4º Ano",
+    ("1-94025", "BV"): "4º Ano",
+    ("1-94154", "BV"): "4º Ano",
+    ("1-94162", "BV"): "4º Ano",
+    ("1-9417", "BV"): "4º Ano",
+    ("91940", "BV"): "4º Ano",
+    ("92266", "BV"): "4º Ano",
+    ("92276", "BV"): "4º Ano",
+    ("1-10105", "BV"): "5º Ano",
+    ("1-10238", "BV"): "5º Ano",
+    ("1-10326", "BV"): "5º Ano",
+    ("1-10394", "BV"): "5º Ano",
+    ("1-10738", "BV"): "5º Ano",
+    ("1-10870", "BV"): "5º Ano",
+    ("1-10871", "BV"): "5º Ano",
+    ("1-111870", "BV"): "5º Ano",
+    ("1-111877", "BV"): "5º Ano",
+    ("1-111937", "BV"): "5º Ano",
+    ("1-112244", "BV"): "5º Ano",
+    ("1-11242", "BV"): "5º Ano",
+    ("1-11346", "BV"): "5º Ano",
+    ("1-11458", "BV"): "5º Ano",
+    ("1-11463", "BV"): "5º Ano",
+    ("1-11479", "BV"): "5º Ano",
+    ("1-11520", "BV"): "5º Ano",
+    ("1-11673", "BV"): "5º Ano",
+    ("1-11732", "BV"): "5º Ano",
+    ("1-4358", "BV"): "5º Ano",
+    ("1-4473", "BV"): "5º Ano",
+    ("1-4552", "BV"): "5º Ano",
+    ("1-4622", "BV"): "5º Ano",
+    ("1-4633", "BV"): "5º Ano",
+    ("1-5078", "BV"): "5º Ano",
+    ("1-5516", "BV"): "5º Ano",
+    ("1-5643", "BV"): "5º Ano",
+    ("1-5866", "BV"): "5º Ano",
+    ("1-5874", "BV"): "5º Ano",
+    ("1-6226", "BV"): "5º Ano",
+    ("1-6970", "BV"): "5º Ano",
+    ("1-7348", "BV"): "5º Ano",
+    ("1-7778", "BV"): "5º Ano",
+    ("1-7888", "BV"): "5º Ano",
+    ("1-7930", "BV"): "5º Ano",
+    ("1-7943", "BV"): "5º Ano",
+    ("1-7961", "BV"): "5º Ano",
+    ("1-7989", "BV"): "5º Ano",
+    ("1-8169", "BV"): "5º Ano",
+    ("1-8367", "BV"): "5º Ano",
+    ("1-8572", "BV"): "5º Ano",
+    ("1-8655", "BV"): "5º Ano",
+    ("1-91450", "BV"): "5º Ano",
+    ("1-91563", "BV"): "5º Ano",
+    ("1-91825", "BV"): "5º Ano",
+    ("1-9205", "BV"): "5º Ano",
+    ("1-92860", "BV"): "5º Ano",
+    ("1-9319", "BV"): "5º Ano",
+    ("1-93342", "BV"): "5º Ano",
+    ("1-93400", "BV"): "5º Ano",
+    ("1-93467", "BV"): "5º Ano",
+    ("1-93510", "BV"): "5º Ano",
+    ("1-93513", "BV"): "5º Ano",
+    ("1-93676", "BV"): "5º Ano",
+    ("1-93775", "BV"): "5º Ano",
+    ("1-93930", "BV"): "5º Ano",
+    ("1-93968", "BV"): "5º Ano",
+    ("1-94087", "BV"): "5º Ano",
+    ("1-94201", "BV"): "5º Ano",
+    ("1-94380", "BV"): "5º Ano",
+    ("1-9843", "BV"): "5º Ano",
+    ("92239", "BV"): "5º Ano",
+    ("92291", "BV"): "5º Ano",
+    ("92391", "BV"): "5º Ano",
+    ("92445", "BV"): "5º Ano",
+    ("2-10102", "CD"): "2º Ano",
+    ("2-10225", "CD"): "2º Ano",
+    ("2-10392", "CD"): "2º Ano",
+    ("2-10412", "CD"): "2º Ano",
+    ("2-10498", "CD"): "2º Ano",
+    ("2-11038", "CD"): "2º Ano",
+    ("2-111859", "CD"): "2º Ano",
+    ("2-112280", "CD"): "2º Ano",
+    ("2-11305", "CD"): "2º Ano",
+    ("2-11745", "CD"): "2º Ano",
+    ("2-11849", "CD"): "2º Ano",
+    ("2-7404", "CD"): "2º Ano",
+    ("2-7721", "CD"): "2º Ano",
+    ("2-7975", "CD"): "2º Ano",
+    ("2-8128", "CD"): "2º Ano",
+    ("2-8335", "CD"): "2º Ano",
+    ("2-8839", "CD"): "2º Ano",
+    ("2-90377", "CD"): "2º Ano",
+    ("2-90979", "CD"): "2º Ano",
+    ("2-91017", "CD"): "2º Ano",
+    ("2-91023", "CD"): "2º Ano",
+    ("2-9137", "CD"): "2º Ano",
+    ("2-91550", "CD"): "2º Ano",
+    ("2-91680", "CD"): "2º Ano",
+    ("2-9505", "CD"): "2º Ano",
+    ("2-9846", "CD"): "2º Ano",
+    ("23398", "CD"): "2º Ano",
+    ("23437", "CD"): "2º Ano",
+    ("23545", "CD"): "2º Ano",
+    ("23670", "CD"): "2º Ano",
+    ("23686", "CD"): "2º Ano",
+    ("23731", "CD"): "2º Ano",
+    ("23803", "CD"): "2º Ano",
+    ("23842", "CD"): "2º Ano",
+    ("23864", "CD"): "2º Ano",
+    ("23955", "CD"): "2º Ano",
+    ("23989", "CD"): "2º Ano",
+    ("23999", "CD"): "2º Ano",
+    ("24090", "CD"): "2º Ano",
+    ("24202", "CD"): "2º Ano",
+    ("24335", "CD"): "2º Ano",
+    ("24457", "CD"): "2º Ano",
+    ("92195", "CD"): "2º Ano",
+    ("2-10357", "CD"): "3º Ano",
+    ("2-10585", "CD"): "3º Ano",
+    ("2-10742", "CD"): "3º Ano",
+    ("2-112265", "CD"): "3º Ano",
+    ("2-6402", "CD"): "3º Ano",
+    ("2-6432", "CD"): "3º Ano",
+    ("2-6531", "CD"): "3º Ano",
+    ("2-6793", "CD"): "3º Ano",
+    ("2-6897", "CD"): "3º Ano",
+    ("2-7146", "CD"): "3º Ano",
+    ("2-7367", "CD"): "3º Ano",
+    ("2-7398", "CD"): "3º Ano",
+    ("2-8082", "CD"): "3º Ano",
+    ("2-8431", "CD"): "3º Ano",
+    ("2-8602", "CD"): "3º Ano",
+    ("2-90847", "CD"): "3º Ano",
+    ("2-90960", "CD"): "3º Ano",
+    ("2-9113", "CD"): "3º Ano",
+    ("2-91180", "CD"): "3º Ano",
+    ("2-91471", "CD"): "3º Ano",
+    ("2-9510", "CD"): "3º Ano",
+    ("2-9675", "CD"): "3º Ano",
+    ("2-9691", "CD"): "3º Ano",
+    ("2-9707", "CD"): "3º Ano",
+    ("23336", "CD"): "3º Ano",
+    ("23386", "CD"): "3º Ano",
+    ("23431", "CD"): "3º Ano",
+    ("23483", "CD"): "3º Ano",
+    ("23507", "CD"): "3º Ano",
+    ("23526", "CD"): "3º Ano",
+    ("23699", "CD"): "3º Ano",
+    ("23747", "CD"): "3º Ano",
+    ("23838", "CD"): "3º Ano",
+    ("23869", "CD"): "3º Ano",
+    ("23890", "CD"): "3º Ano",
+    ("23950", "CD"): "3º Ano",
+    ("24321", "CD"): "3º Ano",
+    ("24376", "CD"): "3º Ano",
+    ("91839", "CD"): "3º Ano",
+    ("92000", "CD"): "3º Ano",
+    ("92338", "CD"): "3º Ano",
+    ("2-10028", "CD"): "4º Ano",
+    ("2-10517", "CD"): "4º Ano",
+    ("2-10588", "CD"): "4º Ano",
+    ("2-112093", "CD"): "4º Ano",
+    ("2-112151", "CD"): "4º Ano",
+    ("2-11258", "CD"): "4º Ano",
+    ("2-11272", "CD"): "4º Ano",
+    ("2-11602", "CD"): "4º Ano",
+    ("2-11687", "CD"): "4º Ano",
+    ("2-5067", "CD"): "4º Ano",
+    ("2-5305", "CD"): "4º Ano",
+    ("2-5725", "CD"): "4º Ano",
+    ("2-6679", "CD"): "4º Ano",
+    ("2-8837", "CD"): "4º Ano",
+    ("2-90931", "CD"): "4º Ano",
+    ("2-91024", "CD"): "4º Ano",
+    ("2-91731", "CD"): "4º Ano",
+    ("2-9279", "CD"): "4º Ano",
+    ("2-9666", "CD"): "4º Ano",
+    ("23275", "CD"): "4º Ano",
+    ("23281", "CD"): "4º Ano",
+    ("23659", "CD"): "4º Ano",
+    ("23717", "CD"): "4º Ano",
+    ("23778", "CD"): "4º Ano",
+    ("23913", "CD"): "4º Ano",
+    ("24105", "CD"): "4º Ano",
+    ("24109", "CD"): "4º Ano",
+    ("24145", "CD"): "4º Ano",
+    ("24253", "CD"): "4º Ano",
+    ("24316", "CD"): "4º Ano",
+    ("24360", "CD"): "4º Ano",
+    ("24371", "CD"): "4º Ano",
+    ("24402", "CD"): "4º Ano",
+    ("92021", "CD"): "4º Ano",
+    ("2-10101", "CD"): "5º Ano",
+    ("2-10224", "CD"): "5º Ano",
+    ("2-10241", "CD"): "5º Ano",
+    ("2-10312", "CD"): "5º Ano",
+    ("2-10559", "CD"): "5º Ano",
+    ("2-10781", "CD"): "5º Ano",
+    ("2-10977", "CD"): "5º Ano",
+    ("2-111930", "CD"): "5º Ano",
+    ("2-111947", "CD"): "5º Ano",
+    ("2-111994", "CD"): "5º Ano",
+    ("2-112029", "CD"): "5º Ano",
+    ("2-112264", "CD"): "5º Ano",
+    ("2-112279", "CD"): "5º Ano",
+    ("2-11299", "CD"): "5º Ano",
+    ("2-11311", "CD"): "5º Ano",
+    ("2-11693", "CD"): "5º Ano",
+    ("2-5104", "CD"): "5º Ano",
+    ("2-5105", "CD"): "5º Ano",
+    ("2-5304", "CD"): "5º Ano",
+    ("2-5675", "CD"): "5º Ano",
+    ("2-5688", "CD"): "5º Ano",
+    ("2-6408", "CD"): "5º Ano",
+    ("2-6413", "CD"): "5º Ano",
+    ("2-6834", "CD"): "5º Ano",
+    ("2-6975", "CD"): "5º Ano",
+    ("2-7012", "CD"): "5º Ano",
+    ("2-7748", "CD"): "5º Ano",
+    ("2-7954", "CD"): "5º Ano",
+    ("2-8119", "CD"): "5º Ano",
+    ("2-8120", "CD"): "5º Ano",
+    ("2-8177", "CD"): "5º Ano",
+    ("2-8240", "CD"): "5º Ano",
+    ("2-8304", "CD"): "5º Ano",
+    ("2-8362", "CD"): "5º Ano",
+    ("2-8363", "CD"): "5º Ano",
+    ("2-8411", "CD"): "5º Ano",
+    ("2-8912", "CD"): "5º Ano",
+    ("2-90799", "CD"): "5º Ano",
+    ("2-90827", "CD"): "5º Ano",
+    ("2-90848", "CD"): "5º Ano",
+    ("2-91155", "CD"): "5º Ano",
+    ("2-91287", "CD"): "5º Ano",
+    ("2-91564", "CD"): "5º Ano",
+    ("2-91718", "CD"): "5º Ano",
+    ("2-91826", "CD"): "5º Ano",
+    ("2-9930", "CD"): "5º Ano",
+    ("23324", "CD"): "5º Ano",
+    ("23335", "CD"): "5º Ano",
+    ("23380", "CD"): "5º Ano",
+    ("23472", "CD"): "5º Ano",
+    ("23744", "CD"): "5º Ano",
+    ("23793", "CD"): "5º Ano",
+    ("23814", "CD"): "5º Ano",
+    ("23830", "CD"): "5º Ano",
+    ("23895", "CD"): "5º Ano",
+    ("23946", "CD"): "5º Ano",
+    ("23998", "CD"): "5º Ano",
+    ("24299", "CD"): "5º Ano",
+    ("24305", "CD"): "5º Ano",
+    ("24323", "CD"): "5º Ano",
+    ("24362", "CD"): "5º Ano",
+    ("2-11845", "CD"): "Sem turma",
+}
+
+
+def get_pedido_total():
+    """Retorna dicionário com pedido total (inicial + complementar)"""
+    return {
+        cod: (info[0], info[1], info[2] + info[3])
+        for cod, info in PEDIDO_SAE.items()
+    }
+
+
+def get_estoque_total_enviado():
+    """Retorna total enviado para todas unidades por código"""
+    return {
+        cod: sum(unidades.values())
+        for cod, unidades in ESTOQUE_ENVIADO.items()
+    }

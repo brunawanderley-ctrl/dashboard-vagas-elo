@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+backup_*/
+*.html
+output/*.json
+output/*.csv
+output/*.tsv
