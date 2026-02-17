@@ -7,3 +7,16 @@ backup_*/
 output/*.json
 output/*.csv
 output/*.tsv
+output/*.bak_*
+
+# Scripts de extracao (nao sao parte do dashboard)
+extrair_*.py
+analise_evasao.py
+servidor_*.py
+rodar*.sh
+instalar.sh
+setup.sh
+requirements_streamlit.txt
+
+# DB fantasma na raiz
+vagas.db

@@ -1,10 +1,10 @@
-"""CSS claro profissional para o dashboard."""
+"""CSS escuro profissional para o dashboard - estilo Power BI dark."""
 
 import streamlit as st
 
 
 def aplicar_tema():
-    """Aplica o tema CSS claro profissional."""
+    """Aplica o tema CSS escuro profissional."""
     st.markdown("""
     <style>
         /* Esconder menu e rodape padrao */
@@ -12,29 +12,38 @@ def aplicar_tema():
         footer {visibility: hidden;}
         header {visibility: hidden;}
 
-        /* Fundo geral */
+        /* Fundo geral - gradiente escuro */
         .stApp {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e2e8f0;
+        }
+
+        /* Titulo e texto geral */
+        .stApp h1, .stApp h2, .stApp h3 {
+            color: #ffffff !important;
+        }
+        .stApp p, .stApp label, .stApp span {
+            color: #cbd5e1;
         }
 
         /* Cards KPI */
         .kpi-card {
-            background: #ffffff;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
             padding: 20px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.1);
             text-align: center;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         .kpi-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(102, 126, 234, 0.4);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
         }
         .kpi-label {
             font-size: 0.75rem;
-            color: #64748b;
+            color: #aaa;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
@@ -42,6 +51,7 @@ def aplicar_tema():
         .kpi-value {
             font-size: 2rem;
             font-weight: 700;
+            color: #fbbf24;
             margin-bottom: 4px;
         }
         .kpi-detail {
@@ -50,9 +60,9 @@ def aplicar_tema():
         }
 
         /* Cores positivas/negativas */
-        .positive { color: #16a34a; }
-        .negative { color: #dc2626; }
-        .neutral { color: #2563eb; }
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .neutral { color: #60a5fa; }
 
         /* Status badges */
         .status-badge {
@@ -64,17 +74,17 @@ def aplicar_tema():
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .status-critica { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
-        .status-atencao { background: rgba(202, 138, 4, 0.1); color: #b45309; }
-        .status-normal { background: rgba(22, 163, 74, 0.1); color: #16a34a; }
-        .status-lotada { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
-        .status-super { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+        .status-critica { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+        .status-atencao { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .status-normal { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .status-lotada { background: rgba(96, 165, 250, 0.2); color: #60a5fa; }
+        .status-super { background: rgba(167, 139, 250, 0.2); color: #a78bfa; }
 
         /* Barra de ocupacao */
         .ocupacao-bar {
             width: 100%;
             height: 8px;
-            background: #e2e8f0;
+            background: rgba(255,255,255,0.1);
             border-radius: 4px;
             overflow: hidden;
         }
@@ -86,15 +96,15 @@ def aplicar_tema():
 
         /* Header customizado */
         .dashboard-header {
-            background: #ffffff;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
             padding: 20px 25px;
             margin-bottom: 25px;
-            border: 1px solid #e2e8f0;
+            border: none;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            backdrop-filter: blur(10px);
         }
 
         /* Secao */
@@ -103,8 +113,8 @@ def aplicar_tema():
             font-weight: 600;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
-            color: #1e293b;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ffffff;
         }
 
         /* Tabelas Streamlit */
@@ -115,22 +125,32 @@ def aplicar_tema():
 
         /* Sidebar */
         [data-testid="stSidebar"] {
-            background: #f0f2f6;
+            background: #0f1629;
         }
         [data-testid="stSidebar"] .block-container {
             padding-top: 2rem;
         }
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label {
+            color: #cbd5e1 !important;
+        }
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3 {
+            color: #ffffff !important;
+        }
 
         /* Metricas do Streamlit */
         [data-testid="stMetric"] {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
             padding: 15px 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            backdrop-filter: blur(10px);
         }
         [data-testid="stMetricLabel"] {
-            color: #64748b !important;
+            color: #aaa !important;
             font-size: 0.8rem !important;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -138,7 +158,13 @@ def aplicar_tema():
         [data-testid="stMetricValue"] {
             font-size: 1.8rem !important;
             font-weight: 700 !important;
-            color: #1e293b !important;
+            color: #fbbf24 !important;
+        }
+        [data-testid="stMetricDelta"] {
+            color: #94a3b8 !important;
+        }
+        [data-testid="stMetricDelta"] svg {
+            display: none;
         }
 
         /* Tabs */
@@ -146,38 +172,50 @@ def aplicar_tema():
             gap: 8px;
         }
         .stTabs [data-baseweb="tab"] {
-            background: #f1f5f9;
+            background: rgba(255,255,255,0.05);
             border-radius: 8px;
             padding: 8px 16px;
-            color: #64748b;
+            color: #94a3b8;
         }
         .stTabs [aria-selected="true"] {
-            background: rgba(102, 126, 234, 0.15) !important;
-            color: #667eea !important;
+            background: rgba(102, 126, 234, 0.3) !important;
+            color: #ffffff !important;
             font-weight: 600;
         }
 
         /* Dividers */
         hr {
-            border-color: #e2e8f0;
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        /* Radio buttons */
+        .stRadio label {
+            color: #cbd5e1 !important;
+        }
+        .stRadio [data-testid="stMarkdownContainer"] p {
+            color: #e2e8f0 !important;
+        }
+
+        /* Captions */
+        .stCaption, small {
+            color: #64748b !important;
         }
 
         /* ====== Tabelas HTML customizadas ====== */
         .dark-table-container {
-            background: #ffffff;
+            background: rgba(0,0,0,0.2);
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: none;
             overflow: hidden;
             margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
         .dark-table-header {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 10px 15px;
+            background: rgba(102, 126, 234, 0.3);
+            padding: 12px 15px;
             font-weight: 600;
             font-size: 0.95rem;
-            color: #1e293b;
-            border-bottom: 1px solid #e2e8f0;
+            color: #ffffff;
+            border-bottom: none;
         }
         .dark-table {
             width: 100%;
@@ -188,50 +226,50 @@ def aplicar_tema():
             padding: 8px 12px;
             text-align: left;
             font-weight: 600;
-            color: #64748b;
+            color: #aaa;
             text-transform: uppercase;
             font-size: 0.7rem;
             letter-spacing: 0.5px;
-            background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
         .dark-table th.num { text-align: right; }
         .dark-table td {
             padding: 7px 12px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e2e8f0;
         }
         .dark-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
-        .dark-table tr:hover { background: #f8fafc; }
+        .dark-table tr:hover { background: rgba(255,255,255,0.03); }
         .dark-table tr.total-row {
-            background: rgba(102, 126, 234, 0.08);
+            background: rgba(102, 126, 234, 0.2);
             font-weight: 700;
         }
-        .dark-table tr.total-row td { color: #1e293b; border-top: 2px solid #e2e8f0; }
+        .dark-table tr.total-row td { color: #ffffff; border-top: 1px solid rgba(255,255,255,0.1); }
         .dark-table tr.subtotal-row {
-            background: #f8fafc;
+            background: rgba(255,255,255,0.05);
             font-weight: 600;
         }
-        .dark-table tr.subtotal-row td { color: #334155; }
+        .dark-table tr.subtotal-row td { color: #e2e8f0; }
         .dark-table tr.segment-header td {
-            color: #b45309;
+            color: #fbbf24;
             font-weight: 600;
             font-size: 0.8rem;
             padding-top: 12px;
             border-bottom: none;
         }
-        .val-pos { color: #16a34a !important; }
-        .val-neg { color: #dc2626 !important; }
-        .val-warn { color: #b45309 !important; }
+        .val-pos { color: #4ade80 !important; }
+        .val-neg { color: #f87171 !important; }
+        .val-warn { color: #fbbf24 !important; }
 
         /* Progress bar metas */
         .meta-card {
-            background: #ffffff;
+            background: rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 15px 18px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.1);
             min-width: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            backdrop-filter: blur(10px);
         }
         .meta-card-top {
             display: flex;
@@ -239,12 +277,12 @@ def aplicar_tema():
             align-items: center;
             margin-bottom: 8px;
         }
-        .meta-card-name { font-weight: 600; font-size: 0.95rem; color: #1e293b; }
+        .meta-card-name { font-weight: 600; font-size: 0.95rem; color: #ffffff; }
         .meta-card-pct { font-size: 1.3rem; font-weight: 700; }
         .meta-bar {
             width: 100%;
             height: 10px;
-            background: #e2e8f0;
+            background: rgba(255,255,255,0.1);
             border-radius: 5px;
             overflow: hidden;
             margin-bottom: 6px;
@@ -263,12 +301,12 @@ def aplicar_tema():
 
         /* Total rede barra */
         .meta-total {
-            background: #ffffff;
+            background: rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 18px 20px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.15);
             margin-top: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            backdrop-filter: blur(10px);
         }
         .meta-total-top {
             display: flex;
@@ -276,12 +314,12 @@ def aplicar_tema():
             align-items: center;
             margin-bottom: 8px;
         }
-        .meta-total-name { font-weight: 700; font-size: 1.05rem; color: #1e293b; }
+        .meta-total-name { font-weight: 700; font-size: 1.05rem; color: #ffffff; }
         .meta-total-pct { font-size: 1.5rem; font-weight: 700; }
         .meta-total-bar {
             width: 100%;
             height: 14px;
-            background: #e2e8f0;
+            background: rgba(255,255,255,0.1);
             border-radius: 7px;
             overflow: hidden;
             margin-bottom: 6px;
@@ -296,11 +334,19 @@ def aplicar_tema():
             font-size: 0.82rem;
             color: #94a3b8;
         }
+
+        /* Integral cards */
+        .integral-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
     </style>
     """, unsafe_allow_html=True)
 
 
-def kpi_card(label, value, detail="", color="#1e293b"):
+def kpi_card(label, value, detail="", color="#fbbf24"):
     """Renderiza um card KPI customizado."""
     return f"""
     <div class="kpi-card">
