@@ -540,7 +540,7 @@ def _filtrar_unidade_ata(df_src, filtro_un):
 df_raw, ultima_att = carregar_vendas()
 
 # Injetar alunos Elo Tech com pagamento "Em aberto" (faturados, não pagos)
-if df_raw is not None and ELOTECH_EM_ABERTO:
+if df_raw is not None and ELOTECH_EM_ABERTO and 'tipo' in df_raw.columns:
     _mats_existentes = set(df_raw[df_raw['tipo'] == 'Elo Tech']['matricula'].unique())
     _novos = []
     for mat, nome, un, serie_pdf in ELOTECH_EM_ABERTO:
