@@ -1,6 +1,9 @@
 """Dashboard Vagas - Colégio Elo - Página Inicial."""
 
 import streamlit as st
+import subprocess
+import os
+import sys
 import pandas as pd
 import plotly.graph_objects as go
 from utils.theme import aplicar_tema, kpi_card
@@ -40,6 +43,44 @@ with st.sidebar:
     st.page_link("pages/2_📉_Evasão.py", label="📉 Evasão")
     st.page_link("pages/3_🏫_Ensalamento.py", label="🏫 Ensalamento")
     st.page_link("pages/4_📦_Estoque.py", label="📦 Estoque SAE")
+    st.divider()
+
+    # Botão de atualização de dados
+    if st.button("🔄 Atualizar Dados do SIGA", use_container_width=True):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        venv_python = sys.executable
+
+        with st.status("Extraindo dados do SIGA...", expanded=True) as status:
+            erros = []
+
+            st.write("Extraindo vagas 2026...")
+            r1 = subprocess.run(
+                [venv_python, "extrair_vagas_otimizado.py", "--periodo", "2026"],
+                capture_output=True, text=True, timeout=600, cwd=script_dir,
+            )
+            if r1.returncode != 0:
+                erros.append(f"Vagas 2026: {r1.stderr[:200]}")
+            else:
+                st.write("Vagas 2026 OK")
+
+            st.write("Extraindo integral 2026...")
+            r2 = subprocess.run(
+                [venv_python, "extrair_integral.py", "--periodo", "2026"],
+                capture_output=True, text=True, timeout=600, cwd=script_dir,
+            )
+            if r2.returncode != 0:
+                erros.append(f"Integral: {r2.stderr[:200]}")
+            else:
+                st.write("Integral 2026 OK")
+
+            if erros:
+                status.update(label="Extração com erros", state="error")
+                for e in erros:
+                    st.error(e)
+            else:
+                status.update(label="Dados atualizados!", state="complete")
+                st.cache_data.clear()
+                st.rerun()
 
 # Header
 st.markdown("# 🎓 Dashboard Vagas - Colégio Elo")

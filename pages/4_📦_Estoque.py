@@ -573,8 +573,13 @@ with col_b:
 if ultima_att:
     st.caption(f"Dados: {ultima_att}")
 
-if df_raw is None:
-    st.error("Dados não encontrados. Clique em 'Atualizar Dados'.")
+if df_raw is None or df_raw.empty or 'tipo' not in df_raw.columns:
+    st.warning(
+        "Nenhum dado de estoque disponível.\n\n"
+        "Para carregar, cole os dados TSV do SIGA (relatório de recebimentos) "
+        "como arquivos `dados_BV.tsv`, `dados_CD.tsv`, `dados_JG.tsv`, `dados_CDR.tsv` "
+        "na pasta `output/` e clique em **Atualizar Dados**."
+    )
     st.stop()
 
 # =====================================================

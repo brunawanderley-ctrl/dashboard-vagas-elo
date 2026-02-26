@@ -101,12 +101,12 @@ CORES_SEGMENTOS = {
 
 # Metas de matrícula 2026 por unidade
 METAS_2026 = {
-    "Boa Viagem": 1250,
+    "Boa Viagem": 1230,
     "Jaboatão": 1200,
     "Paulista": 850,
     "Cordeiro": 800,
 }
-META_TOTAL = 4100
+META_TOTAL = 4080
 
 # Séries por segmento (para tabela cruzada)
 SERIES_POR_SEGMENTO = {

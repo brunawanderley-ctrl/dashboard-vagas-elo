@@ -32,7 +32,7 @@ ESTOQUE_ENVIADO = {
     901: {"BV": 20, "CD": 20, "JG": 15, "CDR": 15},  # Infantil II
     902: {"BV": 28, "CD": 36, "JG": 15, "CDR": 15},  # Infantil III
     903: {"BV": 50, "CD": 30, "JG": 30, "CDR": 20},  # Infantil IV
-    904: {"BV": 49, "CD": 40, "JG": 36, "CDR": 36},  # Infantil V
+    904: {"BV": 49, "CD": 40, "JG": 30, "CDR": 36},  # Infantil V (CORRIGIDO: JG era 36, agora 30)
     921: {"BV": 50, "CD": 50, "JG": 40, "CDR": 40},  # 1º Ano Fund1
     920: {"BV": 65, "CD": 55, "JG": 49, "CDR": 40},  # 2º Ano Fund1
     913: {"BV": 70, "CD": 60, "JG": 50, "CDR": 40},  # 3º Ano Fund1
@@ -81,6 +81,19 @@ AJUSTE_ANO_PASSADO = {
     995: {"BV": 6, "CD": 1, "JG": 3, "CDR": 0},   # Elo Tech (alunos sem SAE/Socio)
 }
 
+
+# Ajuste Socioemocional (LIV): alunos que compraram em 2025 (não contabilizar como venda 2026)
+# Formato: série -> {unidade: quantidade_ajuste}
+AJUSTE_SOCIO_2025 = {
+    "Infantil IV": {"BV": 2, "CD": 4, "JG": 3, "CDR": 2},
+    "Infantil V": {"BV": 6, "CD": 0, "JG": 2, "CDR": 2},
+    "1º Ano": {"BV": 7, "CD": 4, "JG": 7, "CDR": 2},
+    "2º Ano": {"BV": 4, "CD": 4, "JG": 2, "CDR": 2},
+    "3º Ano": {"BV": 6, "CD": 3, "JG": 1, "CDR": 1},
+    "4º Ano": {"BV": 8, "CD": 3, "JG": 1, "CDR": 0},
+    "5º Ano": {"BV": 1, "CD": 7, "JG": 6, "CDR": 7},
+    "6º Ano": {"BV": 1, "CD": 0, "JG": 1, "CDR": 0},
+}
 
 # Balanço físico (contagem real) por unidade e data
 # Formato: código -> {unidade: {data: quantidade}}
@@ -131,12 +144,20 @@ ELOTECH_EM_ABERTO = [
     ("24362", "Carlos Alexandre de Souza Cunha Neto", "CD", "5º Ano"),
     ("2-6834", "Laura Valentina Feitosa Ramos", "CD", "5º Ano"),
     ("2-8362", "Valentina Castelo Branco Guizelini", "CD", "5º Ano"),
+    # JG - 7 alunos (PDF ELO TECH JG.pdf 11/02/2026)
+    ("3-8599", "Caleb Pereira Salviano da Silva", "JG", "2º Ano"),
+    ("2026-ESP", "Hadassa Vitória Nascimento de Lima", "JG", "2º Ano"),
+    ("2026-ESP", "Carlos Augusto Chermane Freitas Ferreira", "JG", "3º Ano"),
+    ("3-10648", "Livia Pimentel Medeiros", "JG", "4º Ano"),
+    ("3-10953", "Sarah Vitória de Santana", "JG", "4º Ano"),
+    ("3-4286", "Letícia Menezes Maximiano", "JG", "5º Ano"),
+    ("3-9925", "Marcelo Albuquerque de Souza Junior", "JG", "5º Ano"),
 ]
 
 
 # Mapa autoritativo: (matricula, unidade) -> serie (do financeiro SIGA)
-# Gerado automaticamente dos PDFs ELO TECH BV.pdf e ELO TECH CD.pdf
-# BV: 208 alunos | CD: 180 alunos
+# Gerado dos PDFs ELO TECH BV.pdf, ELO TECH CD.pdf e ELO TECH JG.pdf
+# BV: 208 alunos | CD: 180 alunos | JG: 122 alunos (excl. 2026-ESP)
 ELOTECH_SERIE_PDF = {
     ("1-10374", "BV"): "2º Ano",
     ("1-10766", "BV"): "2º Ano",
@@ -526,6 +547,132 @@ ELOTECH_SERIE_PDF = {
     ("24323", "CD"): "5º Ano",
     ("24362", "CD"): "5º Ano",
     ("2-11845", "CD"): "Sem turma",
+    # JG - 2º Ano (37 alunos)
+    ("3-10041", "JG"): "2º Ano",
+    ("3-10086", "JG"): "2º Ano",
+    ("3-10340", "JG"): "2º Ano",
+    ("3-10417", "JG"): "2º Ano",
+    ("3-10879", "JG"): "2º Ano",
+    ("3-111857", "JG"): "2º Ano",
+    ("3-111921", "JG"): "2º Ano",
+    ("3-11572", "JG"): "2º Ano",
+    ("3-11575", "JG"): "2º Ano",
+    ("3-11830", "JG"): "2º Ano",
+    ("3-11834", "JG"): "2º Ano",
+    ("3-3422", "JG"): "2º Ano",
+    ("3-3473", "JG"): "2º Ano",
+    ("3-3691", "JG"): "2º Ano",
+    ("3-3750", "JG"): "2º Ano",
+    ("3-3767", "JG"): "2º Ano",
+    ("3-3853", "JG"): "2º Ano",
+    ("3-4076", "JG"): "2º Ano",
+    ("3-4128", "JG"): "2º Ano",
+    ("3-4163", "JG"): "2º Ano",
+    ("3-4350", "JG"): "2º Ano",
+    ("3-4407", "JG"): "2º Ano",
+    ("3-8568", "JG"): "2º Ano",
+    ("3-8576", "JG"): "2º Ano",
+    ("3-8599", "JG"): "2º Ano",
+    ("3-8610", "JG"): "2º Ano",
+    ("3-8632", "JG"): "2º Ano",
+    ("3-8874", "JG"): "2º Ano",
+    ("3-9239", "JG"): "2º Ano",
+    ("3-90865", "JG"): "2º Ano",
+    ("3-90879", "JG"): "2º Ano",
+    ("3-91156", "JG"): "2º Ano",
+    ("3-91429", "JG"): "2º Ano",
+    ("3-91682", "JG"): "2º Ano",
+    ("3-91800", "JG"): "2º Ano",
+    ("3-9561", "JG"): "2º Ano",
+    ("3-92482", "JG"): "2º Ano",
+    # JG - 3º Ano (31 alunos)
+    ("3-3283", "JG"): "3º Ano",
+    ("3-3430", "JG"): "3º Ano",
+    ("3-3725", "JG"): "3º Ano",
+    ("3-3844", "JG"): "3º Ano",
+    ("3-3927", "JG"): "3º Ano",
+    ("3-4046", "JG"): "3º Ano",
+    ("3-4067", "JG"): "3º Ano",
+    ("3-4114", "JG"): "3º Ano",
+    ("3-4445", "JG"): "3º Ano",
+    ("3-8428", "JG"): "3º Ano",
+    ("3-8882", "JG"): "3º Ano",
+    ("3-9065", "JG"): "3º Ano",
+    ("3-9121", "JG"): "3º Ano",
+    ("3-9192", "JG"): "3º Ano",
+    ("3-9682", "JG"): "3º Ano",
+    ("3-9735", "JG"): "3º Ano",
+    ("3-10684", "JG"): "3º Ano",
+    ("3-11754", "JG"): "3º Ano",
+    ("3-11766", "JG"): "3º Ano",
+    ("3-90891", "JG"): "3º Ano",
+    ("3-90911", "JG"): "3º Ano",
+    ("3-91013", "JG"): "3º Ano",
+    ("3-91151", "JG"): "3º Ano",
+    ("3-91410", "JG"): "3º Ano",
+    ("3-91533", "JG"): "3º Ano",
+    ("3-91663", "JG"): "3º Ano",
+    ("3-92536", "JG"): "3º Ano",
+    ("3-111954", "JG"): "3º Ano",
+    ("3-111980", "JG"): "3º Ano",
+    ("3-111995", "JG"): "3º Ano",
+    ("92146", "JG"): "3º Ano",
+    # JG - 4º Ano (24 alunos)
+    ("3-3519", "JG"): "4º Ano",
+    ("3-3520", "JG"): "4º Ano",
+    ("3-3679", "JG"): "4º Ano",
+    ("3-3733", "JG"): "4º Ano",
+    ("3-3915", "JG"): "4º Ano",
+    ("3-8822", "JG"): "4º Ano",
+    ("3-9057", "JG"): "4º Ano",
+    ("3-9118", "JG"): "4º Ano",
+    ("3-9734", "JG"): "4º Ano",
+    ("3-10648", "JG"): "4º Ano",
+    ("3-10668", "JG"): "4º Ano",
+    ("3-10697", "JG"): "4º Ano",
+    ("3-10953", "JG"): "4º Ano",
+    ("3-11547", "JG"): "4º Ano",
+    ("3-11657", "JG"): "4º Ano",
+    ("3-11763", "JG"): "4º Ano",
+    ("3-11798", "JG"): "4º Ano",
+    ("3-90492", "JG"): "4º Ano",
+    ("3-90754", "JG"): "4º Ano",
+    ("3-91075", "JG"): "4º Ano",
+    ("3-91430", "JG"): "4º Ano",
+    ("3-91541", "JG"): "4º Ano",
+    ("3-91610", "JG"): "4º Ano",
+    ("3-91611", "JG"): "4º Ano",
+    # JG - 5º Ano (30 alunos)
+    ("3-3346", "JG"): "5º Ano",
+    ("3-3447", "JG"): "5º Ano",
+    ("3-3477", "JG"): "5º Ano",
+    ("3-3728", "JG"): "5º Ano",
+    ("3-4081", "JG"): "5º Ano",
+    ("3-4084", "JG"): "5º Ano",
+    ("3-4286", "JG"): "5º Ano",
+    ("3-4414", "JG"): "5º Ano",
+    ("3-4416", "JG"): "5º Ano",
+    ("3-8682", "JG"): "5º Ano",
+    ("3-8809", "JG"): "5º Ano",
+    ("3-8977", "JG"): "5º Ano",
+    ("3-9146", "JG"): "5º Ano",
+    ("3-9480", "JG"): "5º Ano",
+    ("3-9642", "JG"): "5º Ano",
+    ("3-9925", "JG"): "5º Ano",
+    ("3-10462", "JG"): "5º Ano",
+    ("3-10667", "JG"): "5º Ano",
+    ("3-10706", "JG"): "5º Ano",
+    ("3-11557", "JG"): "5º Ano",
+    ("3-11761", "JG"): "5º Ano",
+    ("3-11825", "JG"): "5º Ano",
+    ("3-90912", "JG"): "5º Ano",
+    ("3-91637", "JG"): "5º Ano",
+    ("3-92535", "JG"): "5º Ano",
+    ("3-111943", "JG"): "5º Ano",
+    ("3-112143", "JG"): "5º Ano",
+    ("91845", "JG"): "5º Ano",
+    ("92097", "JG"): "5º Ano",
+    ("92293", "JG"): "5º Ano",
 }
 
 
