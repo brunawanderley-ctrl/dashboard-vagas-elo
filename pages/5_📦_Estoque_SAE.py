@@ -682,6 +682,43 @@ def _abrir_impressao(html_content):
 
 
 # ===========================================
+# AUTO-ATUALIZACAO PROGRAMADA
+# ===========================================
+
+HORARIOS_ATUALIZACAO = [7, 9, 12, 14, 17, 19]
+
+
+def _precisa_atualizar():
+    """Verifica se dados estao defasados em relacao ao horario programado."""
+    json_path = OUTPUT_DIR / "recebimento_final.json"
+    if not json_path.exists():
+        return True
+
+    agora = datetime.now()
+    horarios_passados = [h for h in HORARIOS_ATUALIZACAO if h <= agora.hour]
+    if not horarios_passados:
+        return False
+
+    ultimo_horario = max(horarios_passados)
+    limite = agora.replace(hour=ultimo_horario, minute=0, second=0, microsecond=0)
+    mtime = datetime.fromtimestamp(json_path.stat().st_mtime)
+    return mtime < limite
+
+
+if '_auto_att_feita' not in st.session_state:
+    st.session_state['_auto_att_feita'] = False
+
+if not st.session_state['_auto_att_feita'] and _precisa_atualizar():
+    _resultado_auto = atualizar_dados()
+    st.session_state['_auto_att_feita'] = True
+    if isinstance(_resultado_auto, tuple):
+        _n_auto, _ = _resultado_auto
+        st.cache_data.clear()
+        st.toast(f"Dados atualizados automaticamente: {_n_auto} registros ({datetime.now().strftime('%H:%M')})")
+        st.rerun()
+
+
+# ===========================================
 # HEADER + BOTAO ATUALIZAR
 # ===========================================
 
@@ -846,6 +883,149 @@ with col4:
     st.metric("Estoque Restante", f"{estoque_total:,}")
 with col5:
     st.metric("% Vendido", f"{percentual_venda:.1f}%")
+
+
+# ===========================================
+# BRIEFING KAROL — Analise de Inconsistencias por Unidade
+# ===========================================
+
+st.markdown("### Briefing Karol — Pendencias por Unidade")
+st.caption(f"Analise automatica gerada em {datetime.now().strftime('%d/%m/%Y %H:%M')} — "
+           f"dados do SIGA de {ultima_atualizacao or 'N/A'}")
+
+_pedido_socio = {
+    'Infantil IV': 100, 'Infantil V': 125,
+    '1\u00ba Ano': 147, '2\u00ba Ano': 140,
+    '3\u00ba Ano': 135, '4\u00ba Ano': 130,
+    '5\u00ba Ano': 155, '6\u00ba Ano': 160,
+}
+_pedido_elotech = {'2\u00ba Ano': 150, '3\u00ba Ano': 155, '4\u00ba Ano': 135, '5\u00ba Ano': 150}
+
+for _u_cod, _u_nome in [("BV", "Boa Viagem"), ("CD", "Candeias"), ("JG", "Janga"), ("CDR", "Cordeiro")]:
+    _alertas_sae = []
+    _alertas_socio = []
+    _alertas_tech = []
+    _totais_u = {'vendido_sae': 0, 'enviado_sae': 0, 'estoque_sae': 0, 'vendido_socio': 0, 'vendido_tech': 0}
+
+    # --- SAE ---
+    for _cod, (_serie, _seg, _, _) in PEDIDO_SAE.items():
+        _aj = AJUSTE_ANO_PASSADO.get(_cod, {}).get(_u_cod, 0)
+        _env = ESTOQUE_ENVIADO.get(_cod, {}).get(_u_cod, 0)
+        _f = (df_vendas_sae['segmento'] == _seg) & (df_vendas_sae['serie'] == _serie) & (df_vendas_sae['unidade'] == _u_cod)
+        _vend = int(df_vendas_sae.loc[_f, 'vendido'].values[0]) if _f.any() else 0
+        _est = _env - _vend + _aj
+        _liq = _vend - _aj
+        _totais_u['vendido_sae'] += _vend
+        _totais_u['enviado_sae'] += _env
+        _totais_u['estoque_sae'] += _est
+
+        if _est < 0:
+            _alertas_sae.append(f"**{_serie}**: estoque NEGATIVO ({_est}). Vendido={_vend}, Enviado={_env}")
+        elif _est <= 3 and _env > 0:
+            _alertas_sae.append(f"**{_serie}**: estoque critico ({_est} restantes)")
+        if _aj > 0 and _aj >= _vend:
+            _alertas_sae.append(f"**{_serie}**: Ajuste 2025 ({_aj}) >= Vendido ({_vend}) — venda liquida zero ou negativa, checar contratos")
+
+    # --- Socioemocional ---
+    for _seg_s, _serie_s in ORDEM_SERIES_SOCIO:
+        _f_s = (df_vendas_socio['segmento'] == _seg_s) & (df_vendas_socio['serie'] == _serie_s) & (df_vendas_socio['unidade'] == _u_cod)
+        _vend_s = int(df_vendas_socio.loc[_f_s, 'vendido'].sum()) if _f_s.any() else 0
+        _aj_s = AJUSTE_SOCIO_2025.get(_serie_s, {}).get(_u_cod, 0)
+        _liq_s = _vend_s - _aj_s
+        _totais_u['vendido_socio'] += _vend_s
+        if _aj_s > 0 and _aj_s >= _vend_s:
+            _alertas_socio.append(f"**{_serie_s}**: Ajuste ({_aj_s}) >= Vendido ({_vend_s}) — conferir contratos novos")
+        if _vend_s == 0:
+            _alertas_socio.append(f"**{_serie_s}**: zero vendas registradas no SIGA")
+
+    # --- Elo Tech ---
+    if _u_cod != 'CDR':
+        for _seg_e, _serie_e in ORDEM_SERIES_ELOTECH:
+            _f_e = (df_vendas_elotech['segmento'] == _seg_e) & (df_vendas_elotech['serie'] == _serie_e) & (df_vendas_elotech['unidade'] == _u_cod)
+            _vend_e = int(df_vendas_elotech.loc[_f_e, 'vendido'].sum()) if _f_e.any() else 0
+            _totais_u['vendido_tech'] += _vend_e
+        # Alunos sem serie identificada
+        _tech_detail = df_vendas_raw[(df_vendas_raw['tipo'] == 'Elo Tech') & (df_vendas_raw['unidade'] == _u_cod)]
+        _tech_unicos = _tech_detail.drop_duplicates(subset=['matricula'])
+        _sem_serie = _tech_unicos[~_tech_unicos['matricula'].isin(
+            [k[0] for k in ELOTECH_SERIE_PDF if k[1] == _u_cod]
+        )]
+        _sem_serie_sae = _sem_serie[~_sem_serie['matricula'].isin(
+            df_vendas_raw[df_vendas_raw['tipo'].isin(['SAE', 'Socioemocional'])]['matricula'].unique()
+        )]
+        if len(_sem_serie_sae) > 0:
+            _alertas_tech.append(f"{len(_sem_serie_sae)} aluno(s) Elo Tech sem serie identificada (sem SAE/Socio e fora do PDF)")
+
+    _total_alertas = len(_alertas_sae) + len(_alertas_socio) + len(_alertas_tech)
+
+    if _total_alertas == 0:
+        _cor_u = "#059669"
+        _badge = "OK"
+    elif _total_alertas <= 3:
+        _cor_u = "#d97706"
+        _badge = f"{_total_alertas} pendencia(s)"
+    else:
+        _cor_u = "#dc2626"
+        _badge = f"{_total_alertas} pendencia(s)"
+
+    with st.expander(f"{_u_nome} — {_badge}  |  SAE: {_totais_u['vendido_sae']} vendidos, Socio: {_totais_u['vendido_socio']}, Tech: {_totais_u['vendido_tech']}", expanded=(_total_alertas > 0)):
+        # Resumo numerico
+        _col_r1, _col_r2, _col_r3, _col_r4 = st.columns(4)
+        with _col_r1:
+            st.metric("Vendido SAE", _totais_u['vendido_sae'])
+        with _col_r2:
+            st.metric("Enviado SAE", _totais_u['enviado_sae'])
+        with _col_r3:
+            st.metric("Estoque SAE", _totais_u['estoque_sae'],
+                       delta=f"{_totais_u['estoque_sae']:+d}" if _totais_u['estoque_sae'] != 0 else None)
+        with _col_r4:
+            st.metric("Socio + Tech", f"{_totais_u['vendido_socio']}+{_totais_u['vendido_tech']}")
+
+        if _alertas_sae:
+            st.markdown("**SAE:**")
+            for _a in _alertas_sae:
+                st.markdown(f"- {_a}")
+
+        if _alertas_socio:
+            st.markdown("**Socioemocional:**")
+            for _a in _alertas_socio:
+                st.markdown(f"- {_a}")
+
+        if _alertas_tech:
+            st.markdown("**Elo Tech:**")
+            for _a in _alertas_tech:
+                st.markdown(f"- {_a}")
+
+        if _total_alertas > 0:
+            # Gerar resumo para Karol
+            _itens = []
+            _neg_sae = [a for a in _alertas_sae if 'NEGATIVO' in a]
+            _crit_sae = [a for a in _alertas_sae if 'critico' in a]
+            _aj_sae = [a for a in _alertas_sae if 'Ajuste' in a]
+            if _neg_sae:
+                _itens.append(f"cobrar entrega de {len(_neg_sae)} serie(s) com estoque negativo")
+            if _crit_sae:
+                _itens.append(f"verificar necessidade de reposicao em {len(_crit_sae)} serie(s) com estoque critico")
+            if _aj_sae:
+                _itens.append(f"conferir {len(_aj_sae)} serie(s) onde ajuste 2025 anula as vendas — ha contratos assinados em 2026?")
+            if _alertas_socio:
+                _n_socio_prob = len([a for a in _alertas_socio if 'zero' not in a])
+                _n_socio_zero = len([a for a in _alertas_socio if 'zero' in a])
+                if _n_socio_prob:
+                    _itens.append(f"Socioemocional: {_n_socio_prob} serie(s) com ajuste >= vendido")
+                if _n_socio_zero:
+                    _itens.append(f"Socioemocional: {_n_socio_zero} serie(s) sem vendas — alunos receberam livro sem contrato?")
+            if _alertas_tech:
+                _itens.append(f"Elo Tech: identificar serie dos alunos listados")
+
+            st.markdown(f"---\n**Karol, falar com {_u_nome}:**")
+            for _i, _item in enumerate(_itens, 1):
+                st.markdown(f"{_i}. {_item}")
+        else:
+            st.success(f"{_u_nome}: nenhuma pendencia. Numeros de vendido e estoque consistentes.")
+
+st.divider()
+
 
 # ===========================================
 # CONFERENCIA DE DADOS
